@@ -78,17 +78,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lovable App" },
-      { name: "description", content: "MyRoomiee Premium Living offers curated PG, coliving, and furnished accommodations in Mumbai." },
+      {
+        name: "description",
+        content: "MyRoomiee Premium Living offers curated PG, managed PG accommodations in Mumbai.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "MyRoomiee Premium Living offers curated PG, coliving, and furnished accommodations in Mumbai." },
+      {
+        property: "og:description",
+        content: "MyRoomiee Premium Living offers curated PG, managed PG accommodations in Mumbai.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "MyRoomiee Premium Living offers curated PG, coliving, and furnished accommodations in Mumbai." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8751e30a-1c38-40cf-bb08-8e4dfb2cba14/id-preview-498ee01f--246ed5bb-7bee-4449-a3af-c255138dcffc.lovable.app-1780076870905.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8751e30a-1c38-40cf-bb08-8e4dfb2cba14/id-preview-498ee01f--246ed5bb-7bee-4449-a3af-c255138dcffc.lovable.app-1780076870905.png" },
+      {
+        name: "twitter:description",
+        content: "MyRoomiee Premium Living offers curated PG, managed PG accommodations in Mumbai.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8751e30a-1c38-40cf-bb08-8e4dfb2cba14/id-preview-498ee01f--246ed5bb-7bee-4449-a3af-c255138dcffc.lovable.app-1780076870905.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8751e30a-1c38-40cf-bb08-8e4dfb2cba14/id-preview-498ee01f--246ed5bb-7bee-4449-a3af-c255138dcffc.lovable.app-1780076870905.png",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -101,6 +118,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+      { rel: "icon", type: "image/png", sizes: "48x48", href: "/favicon-48x48.png" },
+      { rel: "icon", type: "image/png", sizes: "96x96", href: "/favicon-96x96.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/favicon-192x192.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
   shellComponent: RootShell,

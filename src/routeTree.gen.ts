@@ -13,15 +13,14 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PgInMaladEastRouteImport } from './routes/pg-in-malad-east'
-import { Route as PgInMaladRouteImport } from './routes/pg-in-malad'
-import { Route as PgInJogeshwariRouteImport } from './routes/pg-in-jogeshwari'
-import { Route as PgInGoregaonRouteImport } from './routes/pg-in-goregaon'
 import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PropertySlugRouteImport } from './routes/property.$slug'
 import { Route as PropertiesSlugRouteImport } from './routes/properties.$slug'
 import { Route as LocationsSlugRouteImport } from './routes/locations.$slug'
 
@@ -45,26 +44,6 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PgInMaladEastRoute = PgInMaladEastRouteImport.update({
-  id: '/pg-in-malad-east',
-  path: '/pg-in-malad-east',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PgInMaladRoute = PgInMaladRouteImport.update({
-  id: '/pg-in-malad',
-  path: '/pg-in-malad',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PgInJogeshwariRoute = PgInJogeshwariRouteImport.update({
-  id: '/pg-in-jogeshwari',
-  path: '/pg-in-jogeshwari',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PgInGoregaonRoute = PgInGoregaonRouteImport.update({
-  id: '/pg-in-goregaon',
-  path: '/pg-in-goregaon',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LocationsRoute = LocationsRouteImport.update({
   id: '/locations',
   path: '/locations',
@@ -80,14 +59,29 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SlugRoute = SlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropertySlugRoute = PropertySlugRouteImport.update({
+  id: '/property/$slug',
+  path: '/property/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PropertiesSlugRoute = PropertiesSlugRouteImport.update({
@@ -103,124 +97,117 @@ const LocationsSlugRoute = LocationsSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/locations': typeof LocationsRouteWithChildren
-  '/pg-in-goregaon': typeof PgInGoregaonRoute
-  '/pg-in-jogeshwari': typeof PgInJogeshwariRoute
-  '/pg-in-malad': typeof PgInMaladRoute
-  '/pg-in-malad-east': typeof PgInMaladEastRoute
   '/privacy': typeof PrivacyRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/properties/$slug': typeof PropertiesSlugRoute
+  '/property/$slug': typeof PropertySlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/locations': typeof LocationsRouteWithChildren
-  '/pg-in-goregaon': typeof PgInGoregaonRoute
-  '/pg-in-jogeshwari': typeof PgInJogeshwariRoute
-  '/pg-in-malad': typeof PgInMaladRoute
-  '/pg-in-malad-east': typeof PgInMaladEastRoute
   '/privacy': typeof PrivacyRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/properties/$slug': typeof PropertiesSlugRoute
+  '/property/$slug': typeof PropertySlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/locations': typeof LocationsRouteWithChildren
-  '/pg-in-goregaon': typeof PgInGoregaonRoute
-  '/pg-in-jogeshwari': typeof PgInJogeshwariRoute
-  '/pg-in-malad': typeof PgInMaladRoute
-  '/pg-in-malad-east': typeof PgInMaladEastRoute
   '/privacy': typeof PrivacyRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/properties/$slug': typeof PropertiesSlugRoute
+  '/property/$slug': typeof PropertySlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$slug'
     | '/about'
+    | '/admin'
     | '/contact'
     | '/faq'
     | '/locations'
-    | '/pg-in-goregaon'
-    | '/pg-in-jogeshwari'
-    | '/pg-in-malad'
-    | '/pg-in-malad-east'
     | '/privacy'
     | '/properties'
     | '/sitemap.xml'
     | '/terms'
     | '/locations/$slug'
     | '/properties/$slug'
+    | '/property/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$slug'
     | '/about'
+    | '/admin'
     | '/contact'
     | '/faq'
     | '/locations'
-    | '/pg-in-goregaon'
-    | '/pg-in-jogeshwari'
-    | '/pg-in-malad'
-    | '/pg-in-malad-east'
     | '/privacy'
     | '/properties'
     | '/sitemap.xml'
     | '/terms'
     | '/locations/$slug'
     | '/properties/$slug'
+    | '/property/$slug'
   id:
     | '__root__'
     | '/'
+    | '/$slug'
     | '/about'
+    | '/admin'
     | '/contact'
     | '/faq'
     | '/locations'
-    | '/pg-in-goregaon'
-    | '/pg-in-jogeshwari'
-    | '/pg-in-malad'
-    | '/pg-in-malad-east'
     | '/privacy'
     | '/properties'
     | '/sitemap.xml'
     | '/terms'
     | '/locations/$slug'
     | '/properties/$slug'
+    | '/property/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SlugRoute: typeof SlugRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   LocationsRoute: typeof LocationsRouteWithChildren
-  PgInGoregaonRoute: typeof PgInGoregaonRoute
-  PgInJogeshwariRoute: typeof PgInJogeshwariRoute
-  PgInMaladRoute: typeof PgInMaladRoute
-  PgInMaladEastRoute: typeof PgInMaladEastRoute
   PrivacyRoute: typeof PrivacyRoute
   PropertiesRoute: typeof PropertiesRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  PropertySlugRoute: typeof PropertySlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -253,34 +240,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pg-in-malad-east': {
-      id: '/pg-in-malad-east'
-      path: '/pg-in-malad-east'
-      fullPath: '/pg-in-malad-east'
-      preLoaderRoute: typeof PgInMaladEastRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pg-in-malad': {
-      id: '/pg-in-malad'
-      path: '/pg-in-malad'
-      fullPath: '/pg-in-malad'
-      preLoaderRoute: typeof PgInMaladRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pg-in-jogeshwari': {
-      id: '/pg-in-jogeshwari'
-      path: '/pg-in-jogeshwari'
-      fullPath: '/pg-in-jogeshwari'
-      preLoaderRoute: typeof PgInJogeshwariRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pg-in-goregaon': {
-      id: '/pg-in-goregaon'
-      path: '/pg-in-goregaon'
-      fullPath: '/pg-in-goregaon'
-      preLoaderRoute: typeof PgInGoregaonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/locations': {
       id: '/locations'
       path: '/locations'
@@ -302,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -309,11 +275,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/property/$slug': {
+      id: '/property/$slug'
+      path: '/property/$slug'
+      fullPath: '/property/$slug'
+      preLoaderRoute: typeof PropertySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/properties/$slug': {
@@ -359,18 +339,17 @@ const PropertiesRouteWithChildren = PropertiesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SlugRoute: SlugRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   LocationsRoute: LocationsRouteWithChildren,
-  PgInGoregaonRoute: PgInGoregaonRoute,
-  PgInJogeshwariRoute: PgInJogeshwariRoute,
-  PgInMaladRoute: PgInMaladRoute,
-  PgInMaladEastRoute: PgInMaladEastRoute,
   PrivacyRoute: PrivacyRoute,
   PropertiesRoute: PropertiesRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  PropertySlugRoute: PropertySlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

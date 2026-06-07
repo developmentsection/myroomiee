@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { pgLocationSlugs } from "@/lib/pg-locations";
-
-const BASE_URL = "https://myroomiee-home-hub.lovable.app";
+import { resolveLocationSitemapEntries } from "@/lib/location-sitemap";
 
 interface SitemapEntry {
   path: string;
@@ -13,7 +11,8 @@ interface SitemapEntry {
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        const baseUrl = new URL(request.url).origin;
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/properties", changefreq: "weekly", priority: "0.9" },
@@ -23,16 +22,20 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/faq", changefreq: "monthly", priority: "0.5" },
           { path: "/privacy", changefreq: "monthly", priority: "0.3" },
           { path: "/terms", changefreq: "monthly", priority: "0.3" },
-          ...pgLocationSlugs.map((s) => ({ path: `/${s}`, changefreq: "weekly" as const, priority: "0.95" })),
+          ...resolveLocationSitemapEntries(),
         ];
 
-        const urls = entries.map((e) => [
-          `  <url>`,
-          `    <loc>${BASE_URL}${e.path}</loc>`,
-          e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
-          e.priority ? `    <priority>${e.priority}</priority>` : null,
-          `  </url>`,
-        ].filter(Boolean).join("\n"));
+        const urls = entries.map((e) =>
+          [
+            `  <url>`,
+            `    <loc>${baseUrl}${e.path}</loc>`,
+            e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
+            e.priority ? `    <priority>${e.priority}</priority>` : null,
+            `  </url>`,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        );
 
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
