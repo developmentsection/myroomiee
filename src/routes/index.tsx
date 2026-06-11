@@ -33,16 +33,12 @@ import {
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PropertyCard } from "@/components/site/PropertyCard";
-import { pgServiceAreaGroups } from "@/lib/pg-locations";
+import { resolveLocationPage, safePreviewGallery, pgServiceAreaGroups } from "@/lib/pg-locations";
+import { withSafePropertyPreview } from "@/lib/property-previews";
 import { cmsPageHead } from "@/lib/cms/head";
 import { useCmsProperties, useCmsSettings, useCmsTwinPage } from "@/lib/cms/store";
 import { twinHref, twinValue } from "@/lib/cms/digital-twin";
-import heroRoom from "@/assets/hero-room.jpg";
 import roomLounge from "@/assets/room-lounge.jpg";
-import roomKitchen from "@/assets/room-kitchen.jpg";
-import roomSingle from "@/assets/room-single.jpg";
-import roomTwin from "@/assets/room-twin.jpg";
-import roomBath from "@/assets/room-bath.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -115,18 +111,23 @@ function Index() {
 
 /* -------------------- HERO -------------------- */
 
-const heroCarouselItems: { label: string; img: string }[] = [
-  { label: "Premium AC Rooms", img: heroRoom },
-  { label: "Double Sharing Rooms", img: roomTwin },
-  { label: "Triple Sharing Rooms", img: roomTwin },
-  { label: "Study Areas", img: roomSingle },
-  { label: "Community Lounge", img: roomLounge },
-  { label: "Dining Space", img: roomKitchen },
-  { label: "Girls PG Rooms", img: roomBath },
-  { label: "Boys PG Rooms", img: roomSingle },
-  { label: "Premium Furnished Rooms", img: heroRoom },
-  { label: "Property Highlights", img: roomLounge },
+const homeHeroLocationSlugs = [
+  "pg-in-malad-east",
+  "pg-in-malad-west",
+  "pg-in-goregaon-east",
+  "pg-in-goregaon-west",
 ];
+
+const heroCarouselItems: { label: string; img: string }[] = homeHeroLocationSlugs.flatMap(
+  (slug) => {
+    const location = resolveLocationPage(slug);
+    if (!location) return [];
+
+    return safePreviewGallery(location.gallery)
+      .slice(0, 3)
+      .map((image) => ({ label: `${location.area} PG`, img: image.src }));
+  },
+);
 
 function Hero() {
   const twin = useCmsTwinPage("home");
@@ -267,6 +268,7 @@ function PgToggleSection() {
     () => cmsProperties.filter((p) => p.gender === gender || p.gender === "any").slice(0, 3),
     [cmsProperties, gender],
   );
+  const previewProperties = useMemo(() => filtered.map(withSafePropertyPreview), [filtered]);
   const stats =
     gender === "boys"
       ? { rooms: "120+", areas: "38+", price: "₹8,499", amenities: "AC • WiFi • Meals • Laundry" }
@@ -341,7 +343,7 @@ function PgToggleSection() {
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
           className="mt-6 grid gap-6 md:grid-cols-3"
         >
-          {filtered.map((p) => (
+          {previewProperties.map((p) => (
             <motion.div
               key={p.slug}
               variants={{
@@ -362,6 +364,10 @@ function PgToggleSection() {
 
 function FeaturedProperties() {
   const cmsProperties = useCmsProperties();
+  const previewProperties = useMemo(
+    () => cmsProperties.map(withSafePropertyPreview),
+    [cmsProperties],
+  );
   return (
     <section className="mx-auto max-w-7xl px-5 py-20">
       <SectionHead
@@ -371,7 +377,7 @@ function FeaturedProperties() {
         cta={{ to: "/properties", label: "View all" }}
       />
       <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {cmsProperties.map((p) => (
+        {previewProperties.map((p) => (
           <PropertyCard key={p.slug} p={p} />
         ))}
       </div>
@@ -502,7 +508,10 @@ function AmenitiesMarquee() {
 function PropertyRotator() {
   const [i, setI] = useState(0);
   const cmsProperties = useCmsProperties();
-  const items = cmsProperties.slice(0, 5);
+  const items = useMemo(
+    () => cmsProperties.slice(0, 5).map(withSafePropertyPreview),
+    [cmsProperties],
+  );
   useEffect(() => {
     const t = setInterval(() => setI((v) => (v + 1) % items.length), 4500);
     return () => clearInterval(t);
@@ -530,9 +539,6 @@ function PropertyRotator() {
               alt={p.name}
               className="absolute inset-0 h-full w-full object-cover"
             />
-            <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-[color:var(--brand)] shadow-soft">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Beds Available
-            </div>
           </motion.div>
         </AnimatePresence>
         <div className="flex flex-col justify-between p-7 md:p-9">
@@ -592,6 +598,7 @@ function PropertyRotator() {
             <Link
               to="/properties/$slug"
               params={{ slug: p.slug }}
+              search={{ location: `pg-in-${p.locationSlug}` }}
               className="inline-flex items-center gap-2 rounded-full gradient-brand px-5 py-2.5 text-sm font-semibold text-white shadow-soft hover:shadow-lift"
             >
               Book Visit <ArrowRight className="h-4 w-4" />

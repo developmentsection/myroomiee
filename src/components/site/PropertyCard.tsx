@@ -2,8 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, BedDouble, CalendarCheck, MapPin, Train } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Property } from "@/lib/properties";
+import { safePreviewImageList } from "@/lib/pg-locations";
 
 export function PropertyCard({ p }: { p: Property }) {
+  const previewImage = safePreviewImageList([p.image, ...p.gallery])[0] ?? p.image;
+
   return (
     <motion.div
       whileHover={{ y: -6, scale: 1.02 }}
@@ -13,12 +16,13 @@ export function PropertyCard({ p }: { p: Property }) {
       <Link
         to="/properties/$slug"
         params={{ slug: p.slug }}
+        search={{ location: `pg-in-${p.locationSlug}` }}
         aria-label={`View details for ${p.name}`}
         className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-border/80 bg-card shadow-soft outline-none transition duration-300 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2"
       >
         <div className="relative aspect-[1.18] overflow-hidden bg-[color:var(--surface-muted)]">
           <img
-            src={p.image}
+            src={previewImage}
             alt={`${p.name} room in ${p.location}`}
             loading="lazy"
             decoding="async"

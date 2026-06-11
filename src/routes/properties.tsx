@@ -5,6 +5,7 @@ import { PropertyCard } from "@/components/site/PropertyCard";
 import { cmsPageHead } from "@/lib/cms/head";
 import { twinHref, twinValue } from "@/lib/cms/digital-twin";
 import { useCmsProperties, useCmsSettings, useCmsTwinPage } from "@/lib/cms/store";
+import { withSafePropertyPreview } from "@/lib/property-previews";
 import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/properties")({
@@ -45,6 +46,10 @@ function PropertiesPage() {
         return true;
       }),
     [cmsProperties, q, budget, sharing, gender, ac],
+  );
+  const previewProperties = useMemo(
+    () => filtered.map(withSafePropertyPreview),
+    [filtered],
   );
 
   if (pathname !== "/properties") {
@@ -167,7 +172,7 @@ function PropertiesPage() {
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
-                {filtered.map((p) => (
+                {previewProperties.map((p) => (
                   <PropertyCard key={p.slug} p={p} />
                 ))}
               </div>

@@ -94,13 +94,96 @@ const galleryShared = [
   { src: bath, alt: "Modern washroom" },
 ];
 
-const baseBoys = (priceFrom: number): PgRoomCard[] => [
+const locationAssetModules = import.meta.glob<string>("../assets/locations/*/*.webp", {
+  eager: true,
+  import: "default",
+});
+
+const imageNumberFromPath = (path: string) => Number(path.match(/\/(\d+)\.webp$/)?.[1] ?? 0);
+
+const locationImages = (folder: string) =>
+  Object.entries(locationAssetModules)
+    .filter(([path]) => path.includes(`/locations/${folder}/`))
+    .sort(([a], [b]) => imageNumberFromPath(a) - imageNumberFromPath(b))
+    .map(([, src]) => src);
+
+const galleryFor = (area: string, folder: string, labels: string[] = []) =>
+  locationImages(folder).map((src, index) => ({
+    src,
+    alt: labels[index] ?? `${area} PG property image ${index + 1}`,
+  }));
+
+const roomImagesFromGallery = (
+  gallery: { src: string; alt: string }[],
+  indexes = { single: 0, twin: 1, triple: 4 },
+) => ({
+  single: safePreviewGallery(gallery)[indexes.single]?.src ?? single,
+  twin: safePreviewGallery(gallery)[indexes.twin]?.src ?? twin,
+  triple: safePreviewGallery(gallery)[indexes.triple]?.src ?? kitchen,
+});
+
+const maladEastGallery = galleryFor("Malad East", "malad-east", [
+  "Malad East furnished PG bedroom",
+  "Malad East double sharing bedroom",
+  "Malad East PG room with wardrobe and study desk",
+  "Malad East PG lounge area",
+  "Malad East PG dining and kitchen space",
+  "Malad East PG washroom",
+  "Malad East premium PG room interior",
+]);
+
+const maladWestGallery = galleryFor("Malad West", "malad-west");
+const goregaonEastGallery = galleryFor("Goregaon East", "goregaon-east");
+const goregaonWestGallery = galleryFor("Goregaon West", "goregaon-west");
+
+const previewBlockedImages = new Set(
+  [
+    bath,
+    maladEastGallery[5]?.src,
+    maladEastGallery[6]?.src,
+    maladWestGallery[6]?.src,
+    maladWestGallery[7]?.src,
+    maladWestGallery[10]?.src,
+    maladWestGallery[15]?.src,
+    maladWestGallery[16]?.src,
+    goregaonEastGallery[8]?.src,
+    goregaonEastGallery[9]?.src,
+    goregaonEastGallery[12]?.src,
+    goregaonWestGallery[4]?.src,
+  ].filter((src): src is string => Boolean(src)),
+);
+
+const bathroomAltPattern = /\b(bath|bathroom|washroom|toilet|wc|restroom)\b/i;
+
+export const isPreviewBlockedImage = (src?: string, alt?: string) =>
+  Boolean(src && previewBlockedImages.has(src)) || Boolean(alt && bathroomAltPattern.test(alt));
+
+export const safePreviewGallery = <T extends { src: string; alt?: string }>(gallery: T[]): T[] => {
+  const filtered = gallery.filter((item) => !isPreviewBlockedImage(item.src, item.alt));
+  return filtered.length ? filtered : gallery;
+};
+
+export const safePreviewImageList = (images: string[]): string[] => {
+  const filtered = images.filter((image) => !isPreviewBlockedImage(image));
+  return filtered.length ? filtered : images;
+};
+
+export const safePreviewImageAt = (
+  gallery: { src: string; alt?: string }[],
+  index = 0,
+  fallback = hero,
+) => {
+  const safeGallery = safePreviewGallery(gallery);
+  return safeGallery[index]?.src ?? safeGallery[0]?.src ?? gallery[0]?.src ?? fallback;
+};
+
+const baseBoys = (priceFrom: number, images = { single, twin, triple: kitchen }): PgRoomCard[] => [
   {
     type: "Single AC Room",
     sharing: "Single",
     priceFrom: priceFrom + 4500,
     gender: "boys",
-    image: single,
+    image: images.single,
     amenities: ["AC", "WiFi", "Cupboard"],
     available: 2,
   },
@@ -109,7 +192,7 @@ const baseBoys = (priceFrom: number): PgRoomCard[] => [
     sharing: "Double",
     priceFrom: priceFrom + 1500,
     gender: "boys",
-    image: twin,
+    image: images.twin,
     amenities: ["AC", "WiFi", "Housekeeping", "Meals"],
     available: 4,
   },
@@ -118,19 +201,22 @@ const baseBoys = (priceFrom: number): PgRoomCard[] => [
     sharing: "Triple",
     priceFrom: priceFrom,
     gender: "boys",
-    image: kitchen,
+    image: images.triple,
     amenities: ["WiFi", "Housekeeping", "Meals", "Laundry"],
     available: 3,
   },
 ];
 
-const baseGirls = (priceFrom: number): PgRoomCard[] => [
+const baseGirls = (
+  priceFrom: number,
+  images = { single, twin, triple: lounge },
+): PgRoomCard[] => [
   {
     type: "Single AC Room",
     sharing: "Single",
     priceFrom: priceFrom + 5000,
     gender: "girls",
-    image: bath,
+    image: images.single,
     amenities: ["AC", "WiFi", "CCTV", "Cupboard"],
     available: 1,
   },
@@ -139,7 +225,7 @@ const baseGirls = (priceFrom: number): PgRoomCard[] => [
     sharing: "Double",
     priceFrom: priceFrom + 2000,
     gender: "girls",
-    image: twin,
+    image: images.twin,
     amenities: ["AC", "WiFi", "CCTV", "Housekeeping", "Meals"],
     available: 3,
   },
@@ -148,11 +234,42 @@ const baseGirls = (priceFrom: number): PgRoomCard[] => [
     sharing: "Triple",
     priceFrom: priceFrom + 500,
     gender: "girls",
-    image: lounge,
+    image: images.triple,
     amenities: ["WiFi", "CCTV", "Housekeeping", "Meals"],
     available: 5,
   },
 ];
+
+const maladEastRoomImages = {
+  single: maladEastGallery[0]?.src ?? single,
+  twin: maladEastGallery[1]?.src ?? twin,
+  triple: maladEastGallery[4]?.src ?? kitchen,
+};
+
+const locationVisualsBySlug: Record<
+  string,
+  {
+    gallery: { src: string; alt: string }[];
+    roomImages: { single: string; twin: string; triple: string };
+  }
+> = {
+  "pg-in-malad-east": {
+    gallery: maladEastGallery,
+    roomImages: maladEastRoomImages,
+  },
+  "pg-in-malad-west": {
+    gallery: maladWestGallery,
+    roomImages: roomImagesFromGallery(maladWestGallery),
+  },
+  "pg-in-goregaon-east": {
+    gallery: goregaonEastGallery,
+    roomImages: roomImagesFromGallery(goregaonEastGallery),
+  },
+  "pg-in-goregaon-west": {
+    gallery: goregaonWestGallery,
+    roomImages: roomImagesFromGallery(goregaonWestGallery),
+  },
+};
 
 const seoBlocksFor = (area: string): { title: string; body: string }[] => [
   {
@@ -428,9 +545,9 @@ export const pgLocations: Record<string, PgLocationData> = {
       { name: "Lifeline Multispeciality Hospital", type: "Hospital", distanceKm: 1.3, minutes: 6 },
       { name: "Children's Academy Malad East", type: "College", distanceKm: 1.1, minutes: 5 },
     ],
-    boys: baseBoys(7999),
-    girls: baseGirls(8999),
-    gallery: galleryShared,
+    boys: baseBoys(7999, maladEastRoomImages),
+    girls: baseGirls(8999, maladEastRoomImages),
+    gallery: maladEastGallery,
     testimonials: [
       {
         name: "Karan Shah",
@@ -602,19 +719,24 @@ const createLocationVariant = (
     | "intro"
     | "mapQuery"
   >,
-): PgLocationData => ({
-  ...base,
-  ...overrides,
-  boys: baseBoys(overrides.startingRent),
-  girls: baseGirls(overrides.startingRent + 1000),
-  seoBlocks: seoBlocksFor(overrides.area),
-  faqs: baseFaqs(overrides.area, overrides.startingRent),
-  landmarks: base.landmarks.map((landmark) =>
-    landmark.type === "Station"
-      ? { ...landmark, name: `${overrides.station} Railway Station` }
-      : landmark,
-  ),
-});
+): PgLocationData => {
+  const visuals = locationVisualsBySlug[overrides.slug];
+
+  return {
+    ...base,
+    ...overrides,
+    boys: baseBoys(overrides.startingRent, visuals?.roomImages),
+    girls: baseGirls(overrides.startingRent + 1000, visuals?.roomImages),
+    gallery: visuals?.gallery ?? galleryShared,
+    seoBlocks: seoBlocksFor(overrides.area),
+    faqs: baseFaqs(overrides.area, overrides.startingRent),
+    landmarks: base.landmarks.map((landmark) =>
+      landmark.type === "Station"
+        ? { ...landmark, name: `${overrides.station} Railway Station` }
+        : landmark,
+    ),
+  };
+};
 
 pgLocations["pg-in-malad-west"] = createLocationVariant(pgLocations["pg-in-malad-east"], {
   slug: "pg-in-malad-west",
@@ -777,6 +899,7 @@ const createSubAreaLocation = (
   const startingRent = config.startingRent ?? parent.startingRent;
   const siblings =
     parent.serviceAreas?.filter((item) => item.href !== `/${config.slug}`).slice(0, 12) ?? [];
+  const visuals = locationVisualsBySlug[parent.slug];
 
   return {
     ...parent,
@@ -811,8 +934,8 @@ const createSubAreaLocation = (
       },
       ...parent.landmarks.slice(0, 6),
     ],
-    boys: baseBoys(startingRent),
-    girls: baseGirls(startingRent + 1000),
+    boys: baseBoys(startingRent, visuals?.roomImages),
+    girls: baseGirls(startingRent + 1000, visuals?.roomImages),
     serviceAreas: siblings,
     seoBlocks: seoBlocksFor(config.area),
     faqs: baseFaqs(config.area, startingRent),

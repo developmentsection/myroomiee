@@ -35,7 +35,7 @@ import {
 import { SiteLayout } from "./SiteLayout";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import type { PgLocationData, PgLandmark } from "@/lib/pg-locations";
-import { pgContact } from "@/lib/pg-locations";
+import { pgContact, safePreviewGallery, safePreviewImageAt } from "@/lib/pg-locations";
 import {
   useCmsHiddenSections,
   useCmsLocationData,
@@ -253,7 +253,8 @@ function Hero({ data }: { data: PgLocationData }) {
 }
 
 function HeroCarousel({ data }: { data: PgLocationData }) {
-  const loop = [...data.gallery, ...data.gallery];
+  const safeGallery = safePreviewGallery(data.gallery);
+  const loop = [...safeGallery, ...safeGallery];
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.97 }}
@@ -276,11 +277,6 @@ function HeroCarousel({ data }: { data: PgLocationData }) {
                 className="h-full w-full object-cover"
                 style={{ animation: "zoom-soft 8s ease-in-out infinite alternate" }}
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-5">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-[color:var(--brand)]">
-                  <CheckCircle2 className="h-3 w-3" /> Beds Available
-                </span>
-              </div>
             </div>
           ))}
         </div>
@@ -582,7 +578,7 @@ function WhyStay({ data }: { data: PgLocationData }) {
         <div className="relative">
           <div className="overflow-hidden rounded-[2rem] border border-border shadow-lift">
             <img
-              src={data.gallery[3]?.src ?? data.gallery[0].src}
+              src={safePreviewImageAt(data.gallery, 3)}
               alt={`Premium PG Rooms in ${data.area}`}
               loading="lazy"
               className="h-[440px] w-full object-cover"
@@ -805,44 +801,47 @@ function Reviews({ data }: { data: PgLocationData }) {
 /* ---------------- SEO CONTENT ---------------- */
 function SeoContent({ data }: { data: PgLocationData }) {
   const guideCards = useMemo(
-    () => [
-      {
-        title: "How To Choose A PG",
-        category: "Planning",
-        image: data.gallery[0]?.src,
-        body: `Compare location, safety, amenities, commute time and rent before choosing a PG in ${data.area}.`,
-      },
-      {
-        title: "Boys PG vs Girls PG",
-        category: "Room Types",
-        image: data.gallery[1]?.src,
-        body: "Understand security, community, rules and comfort differences before shortlisting your stay.",
-      },
-      {
-        title: "Single Sharing vs Triple Sharing",
-        category: "Budget",
-        image: data.gallery[2]?.src,
-        body: "Choose the right sharing type based on privacy needs, monthly budget and daily routine.",
-      },
-      {
-        title: "Benefits Of Fully Furnished PGs",
-        category: "Amenities",
-        image: data.gallery[3]?.src,
-        body: "Move in faster with a ready bed, wardrobe, WiFi, AC, housekeeping and managed common areas.",
-      },
-      {
-        title: `Best Areas To Stay In ${data.area}`,
-        category: "Local Guide",
-        image: data.gallery[4]?.src,
-        body: `Explore well-connected localities near offices, stations, markets and daily essentials in ${data.area}.`,
-      },
-      {
-        title: "Things To Check Before Booking",
-        category: "Checklist",
-        image: data.gallery[5]?.src,
-        body: "Review visit quality, deposit terms, meals, security, access rules and maintenance support.",
-      },
-    ],
+    () => {
+      const safeGallery = safePreviewGallery(data.gallery);
+      return [
+        {
+          title: "How To Choose A PG",
+          category: "Planning",
+          image: safeGallery[0]?.src,
+          body: `Compare location, safety, amenities, commute time and rent before choosing a PG in ${data.area}.`,
+        },
+        {
+          title: "Boys PG vs Girls PG",
+          category: "Room Types",
+          image: safeGallery[1]?.src,
+          body: "Understand security, community, rules and comfort differences before shortlisting your stay.",
+        },
+        {
+          title: "Single Sharing vs Triple Sharing",
+          category: "Budget",
+          image: safeGallery[2]?.src,
+          body: "Choose the right sharing type based on privacy needs, monthly budget and daily routine.",
+        },
+        {
+          title: "Benefits Of Fully Furnished PGs",
+          category: "Amenities",
+          image: safeGallery[3]?.src,
+          body: "Move in faster with a ready bed, wardrobe, WiFi, AC, housekeeping and managed common areas.",
+        },
+        {
+          title: `Best Areas To Stay In ${data.area}`,
+          category: "Local Guide",
+          image: safeGallery[4]?.src,
+          body: `Explore well-connected localities near offices, stations, markets and daily essentials in ${data.area}.`,
+        },
+        {
+          title: "Things To Check Before Booking",
+          category: "Checklist",
+          image: safeGallery[5]?.src,
+          body: "Review visit quality, deposit terms, meals, security, access rules and maintenance support.",
+        },
+      ];
+    },
     [data],
   );
   const [active, setActive] = useState(guideCards.length);
@@ -1094,8 +1093,8 @@ function FinalCta({ data }: { data: PgLocationData }) {
           </div>
           <div className="relative min-h-[280px] bg-[color:var(--surface-muted)]">
             <img
-              src={data.gallery[0].src}
-              alt={data.gallery[0].alt || `PG in ${data.area}`}
+              src={safePreviewImageAt(data.gallery)}
+              alt={`PG in ${data.area}`}
               className="absolute inset-0 h-full w-full object-cover"
             />
           </div>

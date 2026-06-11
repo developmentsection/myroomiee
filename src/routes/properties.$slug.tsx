@@ -36,7 +36,13 @@ import {
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PropertyCard } from "@/components/site/PropertyCard";
 import { properties, realisticAmenities, type Property } from "@/lib/properties";
-import { resolveLocationPage, type PgLandmark } from "@/lib/pg-locations";
+import {
+  resolveLocationPage,
+  safePreviewGallery,
+  safePreviewImageList,
+  type PgLandmark,
+} from "@/lib/pg-locations";
+import { withSafePropertyPreview } from "@/lib/property-previews";
 import { getCmsSnapshot, useCmsProperties, useCmsSettings, useCmsTwinPage } from "@/lib/cms/store";
 import { twinHref, twinValue } from "@/lib/cms/digital-twin";
 import { buildWhatsAppMessage, openWhatsApp } from "@/lib/whatsapp";
@@ -269,7 +275,7 @@ function PropertyDetail() {
       </SiteLayout>
     );
   }
-  return <PropertyDetailView p={property} />;
+  return <PropertyDetailView p={property} locationContext={search.location} />;
 }
 
 function createLocationAwareProperty(p: Property | null, locationSlug?: string): Property | null {
@@ -279,6 +285,16 @@ function createLocationAwareProperty(p: Property | null, locationSlug?: string):
   if (!location) return p;
 
   const roomName = p.occupancyType;
+  const locationGallery = location.gallery.map((item) => item.src);
+  const locationPreviewGallery = safePreviewGallery(location.gallery).map((item) => item.src);
+  const roomImage =
+    [...location.boys, ...location.girls].find((room) => room.type === roomName)?.image ??
+    locationPreviewGallery[0] ??
+    p.image;
+  const gallery = [
+    roomImage,
+    ...locationPreviewGallery.filter((image) => image !== roomImage),
+  ];
   const nearby = location.landmarks.slice(0, 6).map((landmark) => ({
     label: landmark.name,
     type: toNearbyType(landmark),
@@ -290,11 +306,17 @@ function createLocationAwareProperty(p: Property | null, locationSlug?: string):
     name: `MyRoomiee ${location.area} ${roomName}`,
     location: location.area,
     locationSlug: location.slug.replace(/^pg-in-/, ""),
+    image: roomImage,
+    gallery,
     station: location.station,
     stationKm: location.landmarks[0]?.distanceKm ?? p.stationKm,
     priceFrom: p.priceFrom,
     description: `${roomName} in ${location.area}, Mumbai with fully furnished rooms, WiFi, housekeeping, CCTV security, zero brokerage and quick access to ${location.mainArea}. This page reflects the area selected from the MyRoomiee locations page.`,
     nearby: nearby.length ? nearby : p.nearby,
+    manager: {
+      ...p.manager,
+      photo: locationPreviewGallery[2] ?? roomImage,
+    },
   };
 }
 
@@ -315,7 +337,13 @@ function toNearbyType(landmark: PgLandmark): Property["nearby"][number]["type"] 
   }
 }
 
-export function PropertyDetailView({ p }: { p: Property }) {
+export function PropertyDetailView({
+  p,
+  locationContext,
+}: {
+  p: Property;
+  locationContext?: string;
+}) {
   const [activeImage, setActiveImage] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [inquiry, setInquiry] = useState({
@@ -342,6 +370,21 @@ export function PropertyDetailView({ p }: { p: Property }) {
   );
   const displaySimilar =
     similar.length > 0 ? similar : cmsProperties.filter((item) => item.slug !== p.slug).slice(0, 4);
+  const locationAwareSimilar = useMemo(
+    () =>
+      locationContext
+        ? displaySimilar
+            .map((item) => createLocationAwareProperty(item, locationContext))
+            .map((item) => (item ? withSafePropertyPreview(item) : item))
+            .filter((item): item is Property => Boolean(item))
+        : displaySimilar.map(withSafePropertyPreview),
+    [displaySimilar, locationContext],
+  );
+  const previewGallery = useMemo(
+    () => safePreviewImageList(p.gallery.length ? p.gallery : [p.image]),
+    [p.gallery, p.image],
+  );
+  const activePreviewImage = previewGallery[activeImage] ?? previewGallery[0] ?? p.image;
   const updateInquiry = (field: keyof typeof inquiry, value: string) =>
     setInquiry((current) => ({ ...current, [field]: value }));
   const submitInquiry = (event: FormEvent<HTMLFormElement>) => {
@@ -383,7 +426,7 @@ export function PropertyDetailView({ p }: { p: Property }) {
                 <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-lift">
                   <div className="relative aspect-[1.14] md:aspect-[1.75]">
                     <img
-                      src={p.gallery[activeImage]}
+                      src={activePreviewImage}
                       alt={`${p.name} gallery image ${activeImage + 1}`}
                       className="h-full w-full object-cover"
                       fetchPriority="high"
@@ -399,7 +442,7 @@ export function PropertyDetailView({ p }: { p: Property }) {
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-5 gap-2">
-                  {p.gallery.map((img, idx) => (
+                  {previewGallery.map((img, idx) => (
                     <button
                       key={img + idx}
                       type="button"
@@ -667,7 +710,7 @@ export function PropertyDetailView({ p }: { p: Property }) {
             title={twinValue(twin, "global-labels", "labels", "similar", "Similar properties")}
           />
           <div className="mt-6 flex gap-5 overflow-x-auto pb-3 snap-x">
-            {displaySimilar.map((item) => (
+            {locationAwareSimilar.map((item) => (
               <div key={item.slug} className="w-[310px] shrink-0 snap-start md:w-[360px]">
                 <PropertyCard p={item} />
               </div>
@@ -692,13 +735,13 @@ export function PropertyDetailView({ p }: { p: Property }) {
             </button>
             <div className="flex h-full items-center justify-center">
               <img
-                src={p.gallery[lightboxIndex]}
+                src={previewGallery[lightboxIndex] ?? previewGallery[0] ?? p.image}
                 alt={`${p.name} fullscreen preview`}
                 className="max-h-[88vh] max-w-full rounded-2xl object-contain shadow-lift"
               />
             </div>
             <div className="absolute inset-x-0 bottom-4 flex justify-center gap-2 px-4">
-              {p.gallery.map((img, idx) => (
+              {previewGallery.map((img, idx) => (
                 <button
                   key={img + idx}
                   type="button"
