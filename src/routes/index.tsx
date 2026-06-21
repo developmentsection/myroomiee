@@ -55,7 +55,6 @@ function Index() {
     <SiteLayout>
       <Hero />
       <PgToggleSection />
-      <SearchBar />
       <PropertyRotator />
       <FeaturedProperties />
       <WhyChoose />
@@ -304,37 +303,6 @@ function PgToggleSection() {
         </motion.p>
       </AnimatePresence>
     </section>
-  );
-}
-
-/* -------------------- SEARCH -------------------- */
-
-function SearchBar() {
-  return (
-    <section className="mx-auto -mt-4 max-w-5xl px-5">
-      <div className="rounded-3xl border border-border bg-card p-3 shadow-lift md:p-4">
-        <div className="grid gap-2 md:grid-cols-[1.2fr_1fr_1fr_auto]">
-          <Field icon={MapPin} label="Location" placeholder="Andheri, Powai, Bandra..." />
-          <Field icon={IndianRupee} label="Budget" placeholder="Up to ₹15,000" />
-          <Field icon={Users} label="Sharing" placeholder="Single, Double, Triple" />
-          <Link to="/properties" className="inline-flex items-center justify-center gap-2 rounded-2xl gradient-brand px-6 py-3.5 text-sm font-semibold text-white shadow-soft">
-            <Search className="h-4 w-4" /> Search
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Field({ icon: Icon, label, placeholder }: { icon: typeof MapPin; label: string; placeholder: string }) {
-  return (
-    <label className="flex items-center gap-3 rounded-2xl bg-[color:var(--surface)] px-4 py-3">
-      <Icon className="h-5 w-5 text-muted-foreground" />
-      <div className="flex flex-col">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
-        <input className="bg-transparent text-sm outline-none placeholder:text-muted-foreground/70" placeholder={placeholder} />
-      </div>
-    </label>
   );
 }
 
