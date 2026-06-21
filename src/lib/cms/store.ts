@@ -254,14 +254,15 @@ export const useCmsProperties = () => {
     .filter((property) => !property.hidden)
     .map((property) => {
       const fallback = fallbackBySlug.get(property.slug);
-      const image = property.image || fallback?.image || property.gallery[0] || "";
+      const gallery = property.gallery ?? [];
+      const fallbackGallery = fallback?.gallery ?? [];
+      const amenities = property.amenities ?? [];
+      const image = property.image || fallback?.image || gallery[0] || "";
       return {
         ...property,
         image,
-        gallery: property.gallery.length
-          ? property.gallery
-          : (fallback?.gallery ?? (image ? [image] : [])),
-        amenities: property.amenities.length ? property.amenities : (fallback?.amenities ?? []),
+        gallery: gallery.length ? gallery : (fallbackGallery.length ? fallbackGallery : image ? [image] : []),
+        amenities: amenities.length ? amenities : (fallback?.amenities ?? []),
       };
     });
   return visible.length ? visible : createDefaultCmsSnapshot().properties;
@@ -274,10 +275,10 @@ export const useCmsLocationData = (slug: string, fallback: CmsLocationPage["data
   return {
     ...fallback,
     ...data,
-    gallery: data.gallery.length ? data.gallery : fallback.gallery,
-    boys: data.boys.length ? data.boys : fallback.boys,
-    girls: data.girls.length ? data.girls : fallback.girls,
-    faqs: data.faqs.length ? data.faqs : fallback.faqs,
+    gallery: data.gallery?.length ? data.gallery : fallback.gallery,
+    boys: data.boys?.length ? data.boys : fallback.boys,
+    girls: data.girls?.length ? data.girls : fallback.girls,
+    faqs: data.faqs?.length ? data.faqs : fallback.faqs,
   };
 };
 

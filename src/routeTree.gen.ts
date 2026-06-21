@@ -10,9 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TenancyPolicyRouteImport } from './routes/tenancy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PgInMaladRouteImport } from './routes/pg-in-malad'
+import { Route as PgInJogeshwariRouteImport } from './routes/pg-in-jogeshwari'
+import { Route as PgInGoregaonRouteImport } from './routes/pg-in-goregaon'
 import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -29,6 +33,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TenancyPolicyRoute = TenancyPolicyRouteImport.update({
+  id: '/tenancy-policy',
+  path: '/tenancy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -42,6 +51,21 @@ const PropertiesRoute = PropertiesRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PgInMaladRoute = PgInMaladRouteImport.update({
+  id: '/pg-in-malad',
+  path: '/pg-in-malad',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PgInJogeshwariRoute = PgInJogeshwariRouteImport.update({
+  id: '/pg-in-jogeshwari',
+  path: '/pg-in-jogeshwari',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PgInGoregaonRoute = PgInGoregaonRouteImport.update({
+  id: '/pg-in-goregaon',
+  path: '/pg-in-goregaon',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocationsRoute = LocationsRouteImport.update({
@@ -103,9 +127,13 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/locations': typeof LocationsRouteWithChildren
+  '/pg-in-goregaon': typeof PgInGoregaonRoute
+  '/pg-in-jogeshwari': typeof PgInJogeshwariRoute
+  '/pg-in-malad': typeof PgInMaladRoute
   '/privacy': typeof PrivacyRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tenancy-policy': typeof TenancyPolicyRoute
   '/terms': typeof TermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/properties/$slug': typeof PropertiesSlugRoute
@@ -119,9 +147,13 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/locations': typeof LocationsRouteWithChildren
+  '/pg-in-goregaon': typeof PgInGoregaonRoute
+  '/pg-in-jogeshwari': typeof PgInJogeshwariRoute
+  '/pg-in-malad': typeof PgInMaladRoute
   '/privacy': typeof PrivacyRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tenancy-policy': typeof TenancyPolicyRoute
   '/terms': typeof TermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/properties/$slug': typeof PropertiesSlugRoute
@@ -136,9 +168,13 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/locations': typeof LocationsRouteWithChildren
+  '/pg-in-goregaon': typeof PgInGoregaonRoute
+  '/pg-in-jogeshwari': typeof PgInJogeshwariRoute
+  '/pg-in-malad': typeof PgInMaladRoute
   '/privacy': typeof PrivacyRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tenancy-policy': typeof TenancyPolicyRoute
   '/terms': typeof TermsRoute
   '/locations/$slug': typeof LocationsSlugRoute
   '/properties/$slug': typeof PropertiesSlugRoute
@@ -154,9 +190,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/locations'
+    | '/pg-in-goregaon'
+    | '/pg-in-jogeshwari'
+    | '/pg-in-malad'
     | '/privacy'
     | '/properties'
     | '/sitemap.xml'
+    | '/tenancy-policy'
     | '/terms'
     | '/locations/$slug'
     | '/properties/$slug'
@@ -170,9 +210,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/locations'
+    | '/pg-in-goregaon'
+    | '/pg-in-jogeshwari'
+    | '/pg-in-malad'
     | '/privacy'
     | '/properties'
     | '/sitemap.xml'
+    | '/tenancy-policy'
     | '/terms'
     | '/locations/$slug'
     | '/properties/$slug'
@@ -186,9 +230,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/locations'
+    | '/pg-in-goregaon'
+    | '/pg-in-jogeshwari'
+    | '/pg-in-malad'
     | '/privacy'
     | '/properties'
     | '/sitemap.xml'
+    | '/tenancy-policy'
     | '/terms'
     | '/locations/$slug'
     | '/properties/$slug'
@@ -203,9 +251,13 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   LocationsRoute: typeof LocationsRouteWithChildren
+  PgInGoregaonRoute: typeof PgInGoregaonRoute
+  PgInJogeshwariRoute: typeof PgInJogeshwariRoute
+  PgInMaladRoute: typeof PgInMaladRoute
   PrivacyRoute: typeof PrivacyRoute
   PropertiesRoute: typeof PropertiesRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TenancyPolicyRoute: typeof TenancyPolicyRoute
   TermsRoute: typeof TermsRoute
   PropertySlugRoute: typeof PropertySlugRoute
 }
@@ -217,6 +269,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tenancy-policy': {
+      id: '/tenancy-policy'
+      path: '/tenancy-policy'
+      fullPath: '/tenancy-policy'
+      preLoaderRoute: typeof TenancyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -238,6 +297,27 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pg-in-malad': {
+      id: '/pg-in-malad'
+      path: '/pg-in-malad'
+      fullPath: '/pg-in-malad'
+      preLoaderRoute: typeof PgInMaladRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pg-in-jogeshwari': {
+      id: '/pg-in-jogeshwari'
+      path: '/pg-in-jogeshwari'
+      fullPath: '/pg-in-jogeshwari'
+      preLoaderRoute: typeof PgInJogeshwariRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pg-in-goregaon': {
+      id: '/pg-in-goregaon'
+      path: '/pg-in-goregaon'
+      fullPath: '/pg-in-goregaon'
+      preLoaderRoute: typeof PgInGoregaonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/locations': {
@@ -345,9 +425,13 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   LocationsRoute: LocationsRouteWithChildren,
+  PgInGoregaonRoute: PgInGoregaonRoute,
+  PgInJogeshwariRoute: PgInJogeshwariRoute,
+  PgInMaladRoute: PgInMaladRoute,
   PrivacyRoute: PrivacyRoute,
   PropertiesRoute: PropertiesRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TenancyPolicyRoute: TenancyPolicyRoute,
   TermsRoute: TermsRoute,
   PropertySlugRoute: PropertySlugRoute,
 }

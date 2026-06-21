@@ -137,7 +137,7 @@ function AdminCms() {
   const snapshot = useCmsSnapshot();
   const [active, setActive] = useState<AdminTab>("dashboard");
   const [selectedPageId, setSelectedPageId] = useState("home");
-  const [selectedLocationSlug, setSelectedLocationSlug] = useState("pg-in-malad-east");
+  const [selectedLocationSlug, setSelectedLocationSlug] = useState("pg-in-malad");
   const [selectedPropertySlug, setSelectedPropertySlug] = useState(
     snapshot.properties[0]?.slug ?? "",
   );

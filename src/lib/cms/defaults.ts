@@ -89,10 +89,10 @@ const page = (
 const homeSections = (firstProperty?: Property): CmsSection[] => [
   section("hero", "Hero Section", "Find your perfect PG in Mumbai", {
     subheading:
-      "Premium managed PGs and managed PG homes with clean rooms, meals, housekeeping and easy move-in support.",
+      "Premium managed PG accommodation with clean rooms, AC, WiFi, housekeeping and easy move-in support.",
     buttonText: "Explore Properties",
     buttonHref: "/properties",
-    images: firstProperty ? [firstProperty.image, ...firstProperty.gallery] : [],
+    images: firstProperty ? [firstProperty.image, ...(firstProperty.gallery ?? [])] : [],
   }),
   section("pg-toggle", "Boys / Girls PG Toggle", "Choose the stay that fits you"),
   section("featured-properties", "Featured Properties", "Premium properties handpicked for you"),
@@ -167,15 +167,15 @@ const propertySections = (property: Property): CmsSection[] => [
     paragraph: property.description,
     buttonText: "Book Visit",
     buttonHref: "/contact",
-    images: property.gallery,
+    images: property.gallery ?? [property.image],
   }),
-  section("gallery", "Property Gallery", `${property.name} gallery`, { images: property.gallery }),
+  section("gallery", "Property Gallery", `${property.name} gallery`, { images: property.gallery ?? [property.image] }),
   section("amenities", "Property Amenities", "Amenities", {
-    blocks: property.amenities.map((item) => ({ id: item, type: "custom", title: item })),
+    blocks: (property.amenities ?? []).map((item) => ({ id: item, type: "custom", title: item })),
   }),
   section("features", "Property Features", "Property highlights"),
   section("rules", "Property Rules", "House rules", {
-    blocks: property.rules.map((item) => ({
+    blocks: (property.rules ?? []).map((item) => ({
       id: item.label,
       type: "custom",
       title: item.label,
@@ -183,7 +183,7 @@ const propertySections = (property: Property): CmsSection[] => [
     })),
   }),
   section("nearby", "Nearby Areas", "Nearby places", {
-    blocks: property.nearby.map((item) => ({
+    blocks: (property.nearby ?? []).map((item) => ({
       id: item.label,
       type: "custom",
       title: item.label,
@@ -266,10 +266,10 @@ const collectMedia = (
 
   cmsProperties.forEach((property) => {
     add(property.image, `${property.name} cover`, property.name, `property:${property.slug}`);
-    property.gallery.forEach((url, index) =>
+    (property.gallery ?? [property.image]).forEach((url, index) =>
       add(url, `${property.name} gallery ${index + 1}`, property.name, `property:${property.slug}`),
     );
-    add(property.manager.photo, `${property.manager.name} photo`, property.manager.name, "manager");
+    if (property.manager?.photo) add(property.manager.photo, `${property.manager.name} photo`, property.manager.name, "manager");
   });
 
   Object.values(locationPages).forEach((location) => {
@@ -308,7 +308,7 @@ const globalFaqItems = [
   "Are rooms fully furnished?|Every room has a bed, mattress, wardrobe, AC and WiFi. Common areas include refrigerator, microwave, water purifier, gas connection and washing facilities.",
   "What is the security deposit?|Typically 1-2 months of rent. It's fully refundable at move-out after standard inspection.",
   "Do you have lock-in?|Most properties have a 3-month minimum stay. Specific terms are shared during your visit.",
-  "What about food?|Most properties offer healthy breakfast and dinner. Some offer fully equipped community kitchens for self-cooking.",
+  "Is food included?|Food is not included in any MyRoomiee package. Residents can arrange food separately as per their routine, taste and budget.",
   "Are visitors allowed?|Yes - visitors are allowed in common areas with prior intimation. Overnight stay policy varies by property.",
   "Do you have AC and non-AC options?|Both. You can filter by AC on the Properties page or just ask our team.",
   "What documents are required?|Government ID (Aadhaar/PAN), one passport photo, and a digital rental agreement signed in 5 minutes.",
@@ -358,9 +358,9 @@ const createDigitalTwin = (
           "Locations|/locations",
         ]),
         cardListComponent("top-locations", "Top PG Locations", [
-          "PG in Malad East|/pg-in-malad-east",
-          "PG in Goregaon East|/pg-in-goregaon-east",
-          "PG in Jogeshwari East|/pg-in-jogeshwari-east",
+          "PG in Malad|/pg-in-malad",
+          "PG in Goregaon|/pg-in-goregaon",
+          "PG in Jogeshwari|/pg-in-jogeshwari",
         ]),
         cardListComponent("legal-links", "Legal Links", [
           "Privacy Policy|/privacy",
@@ -376,7 +376,7 @@ const createDigitalTwin = (
           twinText(
             "categories",
             "Categories",
-            "Managed PG Accommodation - Premium PG Rooms - Mumbai",
+            "MyRoomiee PG Accommodation - Mumbai",
           ),
         ]),
       ]),
@@ -394,7 +394,7 @@ const createDigitalTwin = (
     home: twinPage("home", "Home", "/", "home", [
       twinSection("hero", "Hero", [
         twinComponent("badge", "Badge", "badge", [
-          twinText("text", "Badge Text", "Trusted by 1,200+ residents across Mumbai", {
+          twinText("text", "Badge Text", "Trusted by 2,500+ residents across Mumbai", {
             icon: "ShieldCheck",
           }),
         ]),
@@ -412,7 +412,7 @@ const createDigitalTwin = (
         ]),
         commonCtaComponent("Book Visit", "/contact"),
         twinComponent("counters", "Counter Group", "counter-group", [
-          twinMicro("residents", "Happy Residents", "counter", "12K+"),
+          twinMicro("residents", "Happy Residents", "counter", "2,500+"),
           twinMicro("properties", "Properties", "counter", "180+"),
           twinMicro("rating", "Google Rating", "4.8"),
         ]),
@@ -541,12 +541,9 @@ const createDigitalTwin = (
       ]),
       twinSection("cards", "Location Cards", [
         cardListComponent("main-areas", "Main Areas", [
-          "Malad East|/pg-in-malad-east",
-          "Malad West|/pg-in-malad-west",
-          "Goregaon East|/pg-in-goregaon-east",
-          "Goregaon West|/pg-in-goregaon-west",
-          "Jogeshwari East|/pg-in-jogeshwari-east",
-          "Jogeshwari West|/pg-in-jogeshwari-west",
+          "Malad|/pg-in-malad",
+          "Goregaon|/pg-in-goregaon",
+          "Jogeshwari|/pg-in-jogeshwari",
         ]),
       ]),
     ]),
@@ -574,7 +571,7 @@ const createDigitalTwin = (
           twinText(
             "paragraph-2",
             "Paragraph 2",
-            "Today MyRoomiee houses 12,000+ residents across the city, with a 4.8 rating on Google and 95% renewal rate.",
+            "Today MyRoomiee houses 2,500+ residents across Mumbai, with a 4.8 rating on Google and a strong renewal rate.",
           ),
         ]),
       ]),
@@ -636,6 +633,12 @@ const createDigitalTwin = (
   };
 
   cmsProperties.forEach((property) => {
+    const manager = property.manager ?? {
+      name: "MyRoomiee Team",
+      role: "Property Manager",
+      phone: pgContact.phone,
+      photo: property.image,
+    };
     pages[`property:${property.slug}`] = twinPage(
       `property:${property.slug}`,
       property.name,
@@ -654,7 +657,7 @@ const createDigitalTwin = (
             "amenities",
             "Amenities",
             "tag-list",
-            property.amenities.map((amenity, index) =>
+            (property.amenities ?? []).map((amenity, index) =>
               twinText(`amenity-${index + 1}`, amenity, amenity),
             ),
           ),
@@ -662,7 +665,7 @@ const createDigitalTwin = (
             "nearby",
             "Nearby Places",
             "card-list",
-            property.nearby.map((place, index) =>
+            (property.nearby ?? []).map((place, index) =>
               twinText(
                 `nearby-${index + 1}`,
                 place.label,
@@ -674,22 +677,22 @@ const createDigitalTwin = (
             "rules",
             "Rules",
             "card-list",
-            property.rules.map((rule, index) =>
+            (property.rules ?? []).map((rule, index) =>
               twinText(`rule-${index + 1}`, rule.label, `${rule.label}|${rule.value}`),
             ),
           ),
           twinComponent("manager", "Manager", "person", [
-            twinText("name", "Manager Name", property.manager.name),
-            twinText("role", "Manager Role", property.manager.role),
+            twinText("name", "Manager Name", manager.name),
+            twinText("role", "Manager Role", manager.role),
             twinCta(
               "phone",
               "Manager Phone",
-              property.manager.phone,
-              `tel:${property.manager.phone}`,
+              manager.phone,
+              `tel:${manager.phone}`,
             ),
             twinImage("photo", "Manager Photo", {
-              src: property.manager.photo,
-              alt: property.manager.name,
+              src: manager.photo,
+              alt: manager.name,
             }),
           ]),
         ]),
@@ -855,7 +858,7 @@ export const createDefaultCmsSnapshot = (): CmsSnapshot => {
         seo(
           "/",
           "MyRoomiee | Premium PG Accommodation in Mumbai",
-          "Find managed PG and managed PG homes in Mumbai with furnished rooms, meals, housekeeping and quick visits.",
+          "Find managed PG accommodation in Mumbai with furnished rooms, AC, WiFi, housekeeping and quick visits.",
           firstProperty?.image,
         ),
       ),
@@ -974,7 +977,7 @@ export const createDefaultCmsSnapshot = (): CmsSnapshot => {
       email: pgContact.email,
       address: pgContact.address,
       copyrightText: "MyRoomiee. All rights reserved.",
-      categoriesText: "Managed PG Accommodation - Premium PG Rooms - Mumbai",
+      categoriesText: "MyRoomiee PG Accommodation - Mumbai",
     },
     digitalTwin: createDigitalTwin(locationPages, cmsProperties, firstProperty),
   };

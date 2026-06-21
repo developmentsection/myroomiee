@@ -1,217 +1,92 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, MapPin } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { cmsPageHead } from "@/lib/cms/head";
-import { twinValue } from "@/lib/cms/digital-twin";
-import { useCmsTwinPage } from "@/lib/cms/store";
-import { locationSlugFromArea, pgServiceAreaGroups } from "@/lib/pg-locations";
-
-const BASE_URL = "https://myroomiee.com";
-
-type ServiceSection = {
-  title: string;
-  subtitle: string;
-  href: string;
-  areas: string[];
-};
-
-const serviceLocations: ServiceSection[] = pgServiceAreaGroups.map((group) => ({
-  title: group.title,
-  subtitle: "Sub Areas",
-  href: group.href,
-  areas: group.areas,
-}));
+import { locationPages, mainAreaSlugs } from "@/lib/pg-locations";
+import { ArrowRight, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/locations")({
-  head: () => {
-    const title = "MyRoomiee PG Locations in Malad, Goregaon & Jogeshwari";
-    const description =
-      "Explore MyRoomiee premium PG service areas in Malad East, Malad West, Goregaon East, Goregaon West, Jogeshwari East and Jogeshwari West.";
-    const head = cmsPageHead("locations", {
-      title,
-      description,
-      canonical: `${BASE_URL}/locations`,
-    });
-
-    return {
-      ...head,
-      meta: [
-        ...head.meta,
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: `${BASE_URL}/locations` },
-        { name: "twitter:card", content: "summary" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-      ],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Home", item: `${BASE_URL}/` },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Locations",
-                item: `${BASE_URL}/locations`,
-              },
-            ],
-          }),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            name: "MyRoomiee service locations",
-            itemListElement: serviceLocations.map((section, index) => ({
-              "@type": "ListItem",
-              position: index + 1,
-              url: `${BASE_URL}${section.href}`,
-              name: `PG in ${section.title}`,
-            })),
-          }),
-        },
-      ],
-    };
-  },
+  head: () => ({
+    meta: [
+      { title: "Locations We Serve - MyRoomiee PG Mumbai" },
+      { name: "description", content: "Explore MyRoomiee PG rooms across Malad East, Malad West, Goregaon East, Goregaon West, Jogeshwari East, Jogeshwari West and nearby Mumbai subareas." },
+      { property: "og:title", content: "Locations - MyRoomiee" },
+      { property: "og:description", content: "Premium MyRoomiee PG rooms across Mumbai main areas and subareas." },
+    ],
+    links: [{ rel: "canonical", href: "/locations" }],
+  }),
   component: LocationsPage,
 });
 
 function LocationsPage() {
-  const twin = useCmsTwinPage("locations");
-  const uniqueServiceLocations = useMemo(() => dedupeServiceAreas(serviceLocations), []);
+  const mainPages = mainAreaSlugs.map((slug) => locationPages[slug]).filter(Boolean);
 
   return (
     <SiteLayout>
-      <section className="border-b border-border bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="max-w-3xl"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--brand)]">
-              {twinValue(twin, "hero", "content", "eyebrow", "Locations")}
-            </p>
-            <h1 className="mt-3 font-display text-4xl font-bold leading-tight md:text-5xl">
-              {twinValue(
-                twin,
-                "hero",
-                "content",
-                "heading",
-                "Premium PG Service Areas Around Malad, Goregaon and Jogeshwari",
-              )}
-            </h1>
-            <p className="mt-4 text-base leading-7 text-muted-foreground md:text-lg">
-              {twinValue(
-                twin,
-                "hero",
-                "content",
-                "description",
-                "Browse only the areas where MyRoomiee actively serves residents. Each card lists unique sub-areas under its parent location.",
-              )}
-            </p>
-          </motion.div>
-
-          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {uniqueServiceLocations.map((section) => (
-              <a
-                key={section.title}
-                href={section.href}
-                className="group rounded-2xl border border-border bg-white p-4 shadow-soft transition hover:scale-[1.03] hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-soft)] hover:shadow-lift"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Main Area
-                    </p>
-                    <h2 className="mt-1 font-display text-xl font-bold">{section.title}</h2>
-                  </div>
-                  <span className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--brand)] text-white">
-                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-                  </span>
-                </div>
-              </a>
-            ))}
-          </div>
+      <section className="border-b border-border bg-[color:var(--surface)]">
+        <div className="mx-auto max-w-5xl px-5 py-16 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--brand)]">Locations</p>
+          <h1 className="mt-2 font-display text-4xl font-bold md:text-5xl">PG locations across Mumbai</h1>
+          <p className="mt-4 text-muted-foreground">
+            Browse MyRoomiee PG rooms in main areas and nearby subareas. Every page is clickable and updated with MyRoomiee details.
+          </p>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-14 md:py-18">
-        <div className="space-y-8">
-          {uniqueServiceLocations.map((section, sectionIndex) => (
-            <motion.div
-              key={section.title}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.42, delay: sectionIndex * 0.03 }}
-              className="rounded-2xl border border-border bg-card p-5 shadow-soft md:p-7"
+      <section className="mx-auto max-w-7xl px-5 py-16">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {mainPages.map((main) => (
+            <Link
+              key={main.slug}
+              to={`/${main.slug}`}
+              className="group overflow-hidden rounded-3xl border border-border bg-card shadow-soft transition hover:-translate-y-1 hover:shadow-lift"
             >
-              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--brand)]">
-                    {section.subtitle}
-                  </p>
-                  <h2 className="mt-2 font-display text-3xl font-bold">{section.title}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {section.areas.length} unique sub-areas linked to {section.title}.
-                  </p>
-                </div>
-                <a
-                  href={section.href}
-                  className="inline-flex items-center justify-center gap-2 rounded-full gradient-brand px-5 py-3 text-sm font-bold text-white shadow-soft transition hover:scale-[1.03] hover:shadow-lift"
-                >
-                  View PG in {section.title}
-                  <ArrowRight className="h-4 w-4" />
-                </a>
+              <div className="aspect-[16/10] overflow-hidden bg-[color:var(--surface)]">
+                <img src={main.gallery[0]?.src} alt={`PG in ${main.area}`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
               </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {section.areas.map((area, areaIndex) => (
-                  <motion.a
-                    key={area}
-                    href={`/${locationSlugFromArea(area)}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    whileHover={{ scale: 1.03 }}
-                    transition={{ duration: 0.2, delay: Math.min(areaIndex * 0.01, 0.12) }}
-                    className="group inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white px-4 py-2.5 text-sm font-semibold text-foreground shadow-soft transition hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-soft)] hover:text-[color:var(--brand)] hover:shadow-lift focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)] focus:ring-offset-2"
-                    aria-label={`View PG options near ${area} in ${section.title}`}
-                  >
-                    <MapPin className="h-4 w-4 text-[color:var(--brand)]" />
-                    {area}
-                  </motion.a>
-                ))}
+              <div className="p-5">
+                <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--brand)]">
+                  <MapPin className="h-3.5 w-3.5" /> Main Area
+                </p>
+                <h2 className="mt-2 font-display text-xl font-bold">{main.area}</h2>
+                <p className="mt-2 text-sm text-muted-foreground">{main.subheadline}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)]">
+                  View PGs <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </span>
               </div>
-            </motion.div>
+            </Link>
           ))}
         </div>
       </section>
+
+      {mainPages.map((main) => (
+        <section key={main.slug} className="border-t border-border/70 py-14">
+          <div className="mx-auto max-w-7xl px-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--brand)]">Subareas</p>
+                <h2 className="font-display text-2xl font-bold">PG near {main.area}</h2>
+              </div>
+              <Link to={`/${main.slug}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)]">
+                Open {main.area} <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {(main.serviceAreas ?? []).map((area) => (
+                <Link
+                  key={area.href}
+                  to={area.href}
+                  className="group flex items-start justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-soft transition hover:-translate-y-0.5 hover:border-[color:var(--brand)]/40 hover:shadow-lift"
+                >
+                  <div>
+                    <p className="text-sm font-semibold">{area.name}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{area.description}</p>
+                  </div>
+                  <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-[color:var(--brand)]" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ))}
     </SiteLayout>
   );
-}
-
-function dedupeServiceAreas(sections: ServiceSection[]): ServiceSection[] {
-  const seen = new Set<string>();
-
-  return sections.map((section) => ({
-    ...section,
-    areas: section.areas.filter((area) => {
-      const key = area
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "")
-        .trim();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }),
-  }));
 }

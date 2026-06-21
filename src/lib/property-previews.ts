@@ -13,7 +13,7 @@ const roomImageFor = (property: Property) => {
 
 export const withSafePropertyPreview = (property: Property): Property => {
   const image =
-    safePreviewImageList([roomImageFor(property), property.image, ...property.gallery].filter(Boolean) as string[])[0] ??
+    safePreviewImageList([roomImageFor(property), property.image, ...(property.gallery ?? [])].filter(Boolean) as string[])[0] ??
     property.image;
 
   return image === property.image ? property : { ...property, image };

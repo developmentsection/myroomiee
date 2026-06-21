@@ -1,157 +1,63 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, type FormEvent } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { SiteLayout } from "@/components/site/SiteLayout";
+import { BrandLogo } from "@/components/site/BrandLogo";
+import { properties, propertyImages, resolvePropertyBySlug } from "@/lib/properties";
+import { resolveLocationPage, safePreviewGallery, safePreviewImageList } from "@/lib/pg-locations";
 import {
-  ArrowRight,
+  Armchair,
   BedDouble,
+  Box,
   Building2,
-  Bus,
-  CalendarCheck,
   Camera,
-  Car,
-  ChefHat,
-  Clock,
   CheckCircle2,
   ChevronDown,
   Droplet,
-  Expand,
   Flame,
   Home,
   Hospital,
-  Landmark,
   MapPin,
   MessageCircle,
   Microwave,
   Phone,
-  Plug,
   Refrigerator,
-  Shield,
+  ShieldCheck,
   Shirt,
+  ShoppingBag,
+  Snowflake,
   Sparkles,
   Train,
-  Users,
   Wifi,
-  X,
 } from "lucide-react";
-import { SiteLayout } from "@/components/site/SiteLayout";
-import { PropertyCard } from "@/components/site/PropertyCard";
-import { properties, realisticAmenities, type Property } from "@/lib/properties";
-import {
-  resolveLocationPage,
-  safePreviewGallery,
-  safePreviewImageList,
-  type PgLandmark,
-} from "@/lib/pg-locations";
-import { withSafePropertyPreview } from "@/lib/property-previews";
-import { getCmsSnapshot, useCmsProperties, useCmsSettings, useCmsTwinPage } from "@/lib/cms/store";
-import { twinHref, twinValue } from "@/lib/cms/digital-twin";
-import { buildWhatsAppMessage, openWhatsApp } from "@/lib/whatsapp";
-
-const BASE_URL = "https://myroomiee.com";
-
-type PropertySearch = {
-  location?: string;
-};
 
 export const Route = createFileRoute("/properties/$slug")({
-  validateSearch: (search: Record<string, unknown>): PropertySearch => ({
+  validateSearch: (search: Record<string, unknown>) => ({
     location: typeof search.location === "string" ? search.location : undefined,
   }),
-  loaderDeps: ({ search }) => ({ location: search.location }),
-  loader: ({ params, deps }) => {
-    const p = properties.find((x) => x.slug === params.slug);
-    return createLocationAwareProperty(p ?? null, deps.location);
+  loader: ({ params }) => {
+    const p = resolvePropertyBySlug(params.slug);
+    if (!p) throw notFound();
+    return p;
   },
-  head: ({ loaderData }) => {
-    if (!loaderData) return {};
-    const baseProperty = properties.find((item) => item.slug === loaderData.slug);
-    const cmsProperty = getCmsSnapshot().properties.find((item) => item.slug === loaderData.slug);
-    const hasLocationContext = Boolean(
-      baseProperty && baseProperty.location !== loaderData.location,
-    );
-    const seo = hasLocationContext ? undefined : cmsProperty?.seo;
-    const contextQuery =
-      hasLocationContext && loaderData.locationSlug
-        ? `?location=pg-in-${loaderData.locationSlug}`
-        : "";
-    const url = seo?.canonicalUrl || `${BASE_URL}/properties/${loaderData.slug}${contextQuery}`;
-    const title = seo?.metaTitle || `${loaderData.name} in ${loaderData.location} | MyRoomiee PG`;
-    const description =
-      seo?.metaDescription ||
-      `${loaderData.occupancyType} in ${loaderData.location}, Mumbai from Rs. ${loaderData.priceFrom.toLocaleString("en-IN")}/month with WiFi, meals, housekeeping, CCTV and zero brokerage.`;
-    const ogImage = seo?.ogImage || loaderData.image;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        ...(seo?.keywords ? [{ name: "keywords", content: seo.keywords }] : []),
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: url },
-        { property: "og:image", content: ogImage },
-        ...(seo?.robots ? [{ name: "robots", content: seo.robots }] : []),
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: ogImage },
-      ],
-      links: [{ rel: "canonical", href: url }],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LodgingBusiness",
-            name: loaderData.name,
-            description,
-            image: loaderData.gallery,
-            url,
-            telephone: loaderData.manager.phone,
-            priceRange: `Rs. ${loaderData.priceFrom}+`,
-            address: {
-              "@type": "PostalAddress",
-              streetAddress: loaderData.location,
-              addressLocality: "Mumbai",
-              addressRegion: "MH",
-              addressCountry: "IN",
-            },
-            amenityFeature: loaderData.amenities.map((name) => ({
-              "@type": "LocationFeatureSpecification",
-              name,
-              value: true,
-            })),
-          }),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Home", item: `${BASE_URL}/` },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Properties",
-                item: `${BASE_URL}/properties`,
-              },
-              { "@type": "ListItem", position: 3, name: loaderData.name, item: url },
-            ],
-          }),
-        },
-      ],
-    };
-  },
+  head: ({ loaderData }) => ({
+    meta: loaderData
+      ? [
+          { title: `${loaderData.name} - MyRoomiee` },
+          {
+            name: "description",
+            content: `Fully furnished AC accommodation in ${loaderData.location}, Mumbai. Single, double and triple sharing options from Rs. ${loaderData.priceFrom.toLocaleString("en-IN")}/month.`,
+          },
+          { property: "og:title", content: `${loaderData.name} - MyRoomiee` },
+          { property: "og:description", content: `Premium PG in ${loaderData.location} from Rs. ${loaderData.priceFrom.toLocaleString("en-IN")}/mo.` },
+          { property: "og:image", content: loaderData.image },
+        ]
+      : [],
+  }),
   component: PropertyDetail,
   notFoundComponent: () => (
     <SiteLayout>
       <div className="mx-auto max-w-2xl px-5 py-24 text-center">
         <h1 className="font-display text-3xl font-bold">Property not found</h1>
-        <Link
-          to="/properties"
-          className="mt-6 inline-flex rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white"
-        >
+        <Link to="/properties" className="mt-6 inline-flex rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white">
           Back to properties
         </Link>
       </div>
@@ -164,703 +70,448 @@ export const Route = createFileRoute("/properties/$slug")({
   ),
 });
 
-const amenityIcons: Record<string, typeof Wifi> = {
-  WiFi: Wifi,
-  AC: Sparkles,
-  Laundry: Shirt,
-  Meals: ChefHat,
-  Housekeeping: Sparkles,
-  Microwave,
-  Refrigerator,
-  Cupboard: Home,
-  Parking: Car,
-  Lift: Building2,
-  Security: Shield,
-  CCTV: Camera,
-  "Water Purifier": Droplet,
-  "Power Backup": Plug,
-  "Gas Connection": Flame,
-  "Modular Kitchen": ChefHat,
-  "Washing Machine": Shirt,
-  "24 Hour Water": Droplet,
-  "24 Hour Electricity": Plug,
-  Garden: Sparkles,
-  "Rainwater Harvesting": Droplet,
-};
+const roomTypes = [
+  { label: "Single", slug: "single-ac-room", title: "Single AC Room", extra: 3500, note: "Private room option" },
+  { label: "Double", slug: "double-sharing-room", title: "Double Sharing", extra: 1500, note: "Two residents sharing" },
+  { label: "Triple", slug: "triple-sharing-room", title: "Triple Sharing", extra: 0, note: "Budget-friendly sharing" },
+];
 
-const nearbyIcons: Record<Property["nearby"][number]["type"], typeof MapPin> = {
-  "Metro Station": Train,
-  Mall: Building2,
-  "Railway Station": Train,
-  "Bus Stop": Bus,
-  Hospital,
-  College: Landmark,
-  "IT Park": Building2,
-};
-
-const houseRuleGroups: {
-  title: string;
-  icon: typeof Home;
-  items: string[];
-}[] = [
+const amenityGroups = [
   {
-    title: "Living Guidelines",
-    icon: Home,
+    title: "Features / Amenities",
     items: [
-      "Maintain cleanliness of room and common areas",
-      "Respect fellow residents",
-      "Avoid excessive noise",
-      "Follow designated quiet hours",
-      "Use shared amenities responsibly",
+      { icon: Home, name: "Fully furnished room setup" },
+      { icon: Snowflake, name: "Air conditioned rooms" },
+      { icon: Armchair, name: "New furniture" },
+      { icon: Building2, name: "Well-ventilated rooms" },
+      { icon: ShieldCheck, name: "Ready to move in" },
     ],
   },
   {
-    title: "Visitor Policy",
-    icon: Users,
+    title: "Common",
     items: [
-      "Visitors allowed only during approved hours",
-      "Overnight guests not permitted",
-      "Visitor entry subject to management approval",
+      { icon: Wifi, name: "100 mbps internet" },
+      { icon: Sparkles, name: "Daily housekeeping" },
+      { icon: Camera, name: "CCTV security" },
+      { icon: Droplet, name: "RO drinking water" },
+      { icon: Phone, name: "Responsive property support" },
     ],
   },
   {
-    title: "Safety & Security",
-    icon: Shield,
+    title: "Kitchen",
     items: [
-      "Do not share access credentials",
-      "Report maintenance issues promptly",
-      "Follow emergency procedures",
-      "CCTV monitored common areas",
+      { icon: Home, name: "Modular kitchen" },
+      { icon: Microwave, name: "Microwave oven" },
+      { icon: Refrigerator, name: "Refrigerator" },
+      { icon: Shirt, name: "Washing machine" },
+      { icon: Droplet, name: "Water purifier" },
+      { icon: Flame, name: "Gas connection / electric induction" },
     ],
   },
   {
-    title: "Restricted Activities",
-    icon: X,
+    title: "Rooms",
     items: [
-      "No smoking inside property",
-      "No alcohol consumption in common areas",
-      "No illegal activities",
-      "No property damage",
+      { icon: BedDouble, name: "Personal beds" },
+      { icon: Box, name: "Personal wardrobes" },
+      { icon: ShieldCheck, name: "Ortho-bond mattresses" },
+      { icon: Armchair, name: "Side table with charging points" },
+      { icon: Sparkles, name: "Bedsheet and pillows available on request" },
     ],
-  },
-  {
-    title: "Stay Terms",
-    icon: CalendarCheck,
-    items: ["Security deposit terms", "Notice period", "Lock-in period", "Refund policy summary"],
   },
 ];
 
+const policySections = [
+  {
+    title: "Living Guidelines",
+    body: "Residents are expected to keep rooms and common areas clean, respect fellow residents, avoid excessive noise and use shared amenities responsibly.",
+  },
+  {
+    title: "Visitor Policy",
+    body: "Visitors are allowed only with property manager approval and only during permitted visiting hours. Overnight stays by visitors are not allowed unless approved in writing.",
+  },
+  {
+    title: "Safety and Verification",
+    body: "Government ID, emergency contact details and basic resident verification are required before move-in. MyRoomiee properties include secure entry and CCTV-monitored common areas wherever available.",
+  },
+  {
+    title: "Package Inclusions",
+    body: "Standard packages include furnished rooms, air conditioning, WiFi, housekeeping support, RO drinking water and access to shared kitchen facilities as available at the property.",
+  },
+  {
+    title: "Package Exclusions",
+    body: "Food, meals, personal electricity usage, personal laundry, damage charges and optional vendor services are not included in any MyRoomiee package unless confirmed by the manager in writing.",
+  },
+  {
+    title: "Payments and Deposit",
+    body: "Rent, token amount, refundable security deposit and electricity terms are confirmed by the property manager before move-in. Receipts and payment confirmation should be kept by the resident.",
+  },
+  {
+    title: "Exit Notice and Refund",
+    body: "Residents should follow the notice period confirmed for the selected property. Refunds, deductions and final settlement are processed after room handover and pending dues are checked.",
+  },
+  {
+    title: "Rules During Stay",
+    body: "Illegal activities, property damage, nuisance, misuse of amenities and behavior that affects resident safety are not permitted at any MyRoomiee property.",
+  },
+];
+
+const roomTypeFromSlug = (slug?: string) => {
+  if (slug?.includes("single")) return roomTypes[0];
+  if (slug?.includes("double")) return roomTypes[1];
+  if (slug?.includes("triple")) return roomTypes[2];
+  return roomTypes[1];
+};
+
 function PropertyDetail() {
-  const { slug } = Route.useParams();
+  const p = Route.useLoaderData();
+  const params = Route.useParams();
   const search = Route.useSearch();
-  const fallbackProperty = Route.useLoaderData();
-  const cmsProperties = useCmsProperties();
-  const baseProperty = cmsProperties.find((item) => item.slug === slug) ?? fallbackProperty;
-  const property = useMemo(
-    () => createLocationAwareProperty(baseProperty, search.location),
-    [baseProperty, search.location],
-  );
-  if (!property) {
-    return (
-      <SiteLayout>
-        <div className="mx-auto max-w-2xl px-5 py-24 text-center">
-          <h1 className="font-display text-3xl font-bold">Property not found</h1>
-          <Link
-            to="/properties"
-            className="mt-6 inline-flex rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white"
-          >
-            Back to properties
-          </Link>
-        </div>
-      </SiteLayout>
-    );
-  }
-  return <PropertyDetailView p={property} locationContext={search.location} />;
-}
-
-function createLocationAwareProperty(p: Property | null, locationSlug?: string): Property | null {
-  if (!p || !locationSlug) return p;
-
-  const location = resolveLocationPage(locationSlug);
-  if (!location) return p;
-
-  const roomName = p.occupancyType;
-  const locationGallery = location.gallery.map((item) => item.src);
-  const locationPreviewGallery = safePreviewGallery(location.gallery).map((item) => item.src);
-  const roomImage =
-    [...location.boys, ...location.girls].find((room) => room.type === roomName)?.image ??
-    locationPreviewGallery[0] ??
-    p.image;
-  const gallery = [
-    roomImage,
-    ...locationPreviewGallery.filter((image) => image !== roomImage),
-  ];
-  const nearby = location.landmarks.slice(0, 6).map((landmark) => ({
-    label: landmark.name,
-    type: toNearbyType(landmark),
-    distance: `${landmark.distanceKm} km`,
-  }));
-
-  return {
-    ...p,
-    name: `MyRoomiee ${location.area} ${roomName}`,
-    location: location.area,
-    locationSlug: location.slug.replace(/^pg-in-/, ""),
-    image: roomImage,
-    gallery,
-    station: location.station,
-    stationKm: location.landmarks[0]?.distanceKm ?? p.stationKm,
-    priceFrom: p.priceFrom,
-    description: `${roomName} in ${location.area}, Mumbai with fully furnished rooms, WiFi, housekeeping, CCTV security, zero brokerage and quick access to ${location.mainArea}. This page reflects the area selected from the MyRoomiee locations page.`,
-    nearby: nearby.length ? nearby : p.nearby,
-    manager: {
-      ...p.manager,
-      photo: locationPreviewGallery[2] ?? roomImage,
-    },
-  };
-}
-
-function toNearbyType(landmark: PgLandmark): Property["nearby"][number]["type"] {
-  switch (landmark.type) {
-    case "Station":
-      return "Railway Station";
-    case "Metro":
-      return "Metro Station";
-    case "Mall":
-      return "Mall";
-    case "College":
-      return "College";
-    case "Hospital":
-      return "Hospital";
-    case "Office":
-      return "IT Park";
-  }
+  return <PropertyDetailView p={p} routeSlug={params.slug} locationSlug={search.location} />;
 }
 
 export function PropertyDetailView({
   p,
-  locationContext,
+  routeSlug,
+  locationSlug,
 }: {
-  p: Property;
-  locationContext?: string;
+  p: (typeof properties)[number];
+  routeSlug?: string;
+  locationSlug?: string;
 }) {
-  const [activeImage, setActiveImage] = useState(0);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [inquiry, setInquiry] = useState({
-    name: "",
-    phone: "",
-    visitDate: "",
-    message: "",
-  });
-  const cmsProperties = useCmsProperties();
-  const settings = useCmsSettings();
-  const twin = useCmsTwinPage("property-detail");
-  const similar = useMemo(
-    () =>
-      cmsProperties
-        .filter(
-          (item) =>
-            item.slug !== p.slug &&
-            (item.locationSlug === p.locationSlug ||
-              item.gender === p.gender ||
-              item.gender === "any"),
-        )
-        .slice(0, 4),
-    [cmsProperties, p.gender, p.locationSlug, p.slug],
-  );
-  const displaySimilar =
-    similar.length > 0 ? similar : cmsProperties.filter((item) => item.slug !== p.slug).slice(0, 4);
-  const locationAwareSimilar = useMemo(
-    () =>
-      locationContext
-        ? displaySimilar
-            .map((item) => createLocationAwareProperty(item, locationContext))
-            .map((item) => (item ? withSafePropertyPreview(item) : item))
-            .filter((item): item is Property => Boolean(item))
-        : displaySimilar.map(withSafePropertyPreview),
-    [displaySimilar, locationContext],
-  );
-  const previewGallery = useMemo(
-    () => safePreviewImageList(p.gallery.length ? p.gallery : [p.image]),
-    [p.gallery, p.image],
-  );
-  const activePreviewImage = previewGallery[activeImage] ?? previewGallery[0] ?? p.image;
-  const updateInquiry = (field: keyof typeof inquiry, value: string) =>
-    setInquiry((current) => ({ ...current, [field]: value }));
-  const submitInquiry = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    openWhatsApp(
-      p.manager.whatsappHref,
-      buildWhatsAppMessage("New MyRoomiee property enquiry", [
-        { label: "Property", value: p.name },
-        { label: "Location", value: `${p.location}, Mumbai` },
-        { label: "Room type", value: p.occupancyType },
-        { label: "Starting rent", value: `Rs. ${p.priceFrom.toLocaleString("en-IN")}/month` },
-        { label: "Name", value: inquiry.name },
-        { label: "Phone", value: inquiry.phone },
-        { label: "Preferred visit date", value: inquiry.visitDate },
-        { label: "Message", value: inquiry.message },
-      ]),
-    );
-  };
+  const locationData = locationSlug ? resolveLocationPage(locationSlug) : undefined;
+  const activeRoom = roomTypeFromSlug(routeSlug ?? p.slug);
+  const area = locationData?.area ?? p.location;
+  const station = locationData?.station ?? p.station;
+  const stationKm = locationData?.landmarks?.[0]?.distanceKm ?? p.stationKm;
+  const baseRent = locationData?.startingRent ?? p.priceFrom;
+  const displayRent = baseRent + activeRoom.extra;
+  const locationSearch = locationSlug ? { location: locationSlug } : {};
+  const gallery = (
+    locationData?.gallery?.length
+      ? safePreviewGallery(locationData.gallery).slice(0, 3).map((item) => item.src)
+      : safePreviewImageList([p.image, ...(p.gallery ?? [])])
+  ).slice(0, 3);
+  const displayName = `MyRoomiee ${area} ${activeRoom.title}`;
+  const nearbyItems = [
+    { icon: Train, label: `${station} Station`, dist: `${stationKm} km` },
+    { icon: Building2, label: "Colleges and offices", dist: "Easy daily commute" },
+    { icon: Hospital, label: "Hospitals and clinics", dist: "Nearby access" },
+    { icon: ShoppingBag, label: "Markets and essentials", dist: "Close to property" },
+  ];
 
   return (
     <SiteLayout>
-      <main className="pb-20">
-        <section className="bg-[color:var(--surface)]">
-          <div className="mx-auto max-w-7xl px-5 py-6 md:py-10">
-            <Link
-              to="/properties"
-              className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              <ArrowRight className="h-4 w-4 rotate-180" />{" "}
-              {twinValue(twin, "global-labels", "labels", "back", "Back to properties")}
-            </Link>
+      <section className="mx-auto max-w-7xl px-5 py-10">
+        <Link to="/properties" className="text-sm text-muted-foreground hover:text-foreground">
+          Back to properties
+        </Link>
 
-            <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_390px]">
-              <motion.div
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45 }}
-              >
-                <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-lift">
-                  <div className="relative aspect-[1.14] md:aspect-[1.75]">
-                    <img
-                      src={activePreviewImage}
-                      alt={`${p.name} gallery image ${activeImage + 1}`}
-                      className="h-full w-full object-cover"
-                      fetchPriority="high"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setLightboxIndex(activeImage)}
-                      className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-xs font-bold text-foreground shadow-soft backdrop-blur transition hover:bg-white"
-                      aria-label="Open fullscreen gallery"
-                    >
-                      <Expand className="h-4 w-4" /> Preview
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-3 grid grid-cols-5 gap-2">
-                  {previewGallery.map((img, idx) => (
-                    <button
-                      key={img + idx}
-                      type="button"
-                      onClick={() => setActiveImage(idx)}
-                      className={`aspect-[1.2] overflow-hidden rounded-2xl border transition ${activeImage === idx ? "border-[color:var(--brand)] ring-2 ring-[color:var(--brand-soft)]" : "border-border"}`}
-                      aria-label={`Show image ${idx + 1}`}
-                    >
-                      <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-
-              <motion.aside
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.08 }}
-                className="rounded-3xl border border-border bg-card p-6 shadow-lift lg:sticky lg:top-24 lg:h-fit"
-              >
-                <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand)]">
-                  <MapPin className="h-4 w-4" /> {p.location}, Mumbai
-                </p>
-                <h1 className="mt-3 font-display text-3xl font-bold leading-tight md:text-4xl">
-                  {p.name}
-                </h1>
-                <div className="mt-5 flex items-end gap-2">
-                  <span className="whitespace-nowrap font-display text-3xl font-bold sm:text-4xl">
-                    Rs. {p.priceFrom.toLocaleString("en-IN")}
-                  </span>
-                  <span className="pb-1 text-sm text-muted-foreground">
-                    {twinValue(twin, "global-labels", "labels", "month", "/month onwards")}
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Zero brokerage. Visit booking is free.
-                </p>
-                <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
-                  <InfoPill icon={BedDouble} label="Occupancy" value={p.occupancyType} />
-                  <InfoPill icon={Train} label="Station" value={`${p.stationKm} km`} />
-                  <InfoPill icon={Users} label="Beds" value={`${p.beds} total`} />
-                  <InfoPill icon={Clock} label="Status" value={p.availability} />
-                </div>
-                <div className="mt-6 grid gap-2">
-                  <Link
-                    to={twinHref(twin, "global-labels", "labels", "book", "/contact") as "/contact"}
-                    className="inline-flex items-center justify-center gap-2 rounded-full gradient-brand px-5 py-3 text-sm font-bold text-white shadow-soft transition hover:shadow-lift"
-                  >
-                    <CalendarCheck className="h-4 w-4" />{" "}
-                    {twinValue(twin, "global-labels", "labels", "book", settings.primaryCtaText)}
-                  </Link>
-                  <div className="grid grid-cols-2 gap-2">
-                    <a
-                      href={p.manager.whatsappHref}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-sm font-bold hover:bg-accent"
-                    >
-                      <MessageCircle className="h-4 w-4 text-[#25D366]" />{" "}
-                      {twinValue(
-                        twin,
-                        "global-labels",
-                        "labels",
-                        "whatsapp",
-                        settings.secondaryCtaText,
-                      )}
-                    </a>
-                    <a
-                      href={p.manager.phoneHref}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-sm font-bold hover:bg-accent"
-                    >
-                      <Phone className="h-4 w-4" />{" "}
-                      {twinValue(twin, "global-labels", "labels", "call", "Call")}
-                    </a>
-                  </div>
-                </div>
-              </motion.aside>
+        <div className="mt-6 grid gap-9 lg:grid-cols-[1fr_420px]">
+          <div>
+            <div className="relative overflow-hidden rounded-3xl bg-[color:var(--surface-muted)]">
+              <img src={gallery[0]} alt={displayName} className="h-[360px] w-full object-cover md:h-[520px]" />
+              <button type="button" className="absolute right-5 top-5 rounded-full bg-white/95 px-4 py-2 text-sm font-bold shadow-soft">
+                Preview
+              </button>
             </div>
-          </div>
-        </section>
-
-        <SectionShell>
-          <SectionTitle eyebrow="Highlights" title="Built for everyday comfort" />
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {[
-              { icon: BedDouble, label: "Beds", value: `${p.beds} beds` },
-              { icon: Droplet, label: "Bathrooms", value: `${p.bathrooms} bathrooms` },
-              { icon: Building2, label: "Floor", value: p.floor },
-              { icon: Home, label: "Area", value: p.area },
-              { icon: Wifi, label: "Internet", value: p.internet },
-              { icon: ChefHat, label: "Meals", value: p.meals },
-              { icon: Sparkles, label: "Housekeeping", value: p.housekeeping },
-              { icon: Car, label: "Parking", value: p.parking },
-              { icon: Droplet, label: "Water", value: p.water },
-              { icon: Plug, label: "Power Backup", value: p.powerBackup },
-            ].map((item, idx) => (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.35, delay: idx * 0.03 }}
-                className="rounded-2xl border border-border bg-card p-4 shadow-soft"
-              >
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
-                  <item.icon className="h-5 w-5" />
-                </span>
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {item.label}
-                </p>
-                <p className="mt-1 font-display text-base font-bold">{item.value}</p>
-              </motion.div>
-            ))}
-          </div>
-        </SectionShell>
-
-        <SectionShell muted>
-          <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr]">
-            <SectionTitle
-              eyebrow="Description"
-              title="Premium PG living in a prime Mumbai location"
-            />
-            <div className="space-y-4 text-base leading-7 text-muted-foreground">
-              <p>{p.description}</p>
-              <p>
-                Every inquiry is handled by the property team so you can compare room types, confirm
-                current availability and schedule a visit without brokerage pressure. Pricing is
-                transparent, and move-in support is available after your visit.
-              </p>
-            </div>
-          </div>
-        </SectionShell>
-
-        <SectionShell>
-          <SectionTitle eyebrow="Amenities" title="Realistic amenities included" />
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {realisticAmenities
-              .filter((name) => p.amenities.includes(name))
-              .map((name, idx) => {
-                const Icon = amenityIcons[name] ?? Sparkles;
-                return (
-                  <motion.div
-                    key={name}
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.25, delay: idx * 0.02 }}
-                    className="flex min-h-20 items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft"
-                  >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span className="text-sm font-bold">{name}</span>
-                  </motion.div>
-                );
-              })}
-          </div>
-        </SectionShell>
-
-        <SectionShell muted>
-          <SectionTitle eyebrow="Nearby" title="Daily commute and essentials nearby" />
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {p.nearby.map((place) => {
-              const Icon = nearbyIcons[place.type] ?? MapPin;
-              return (
-                <div
-                  key={place.label}
-                  className="rounded-2xl border border-border bg-card p-4 shadow-soft"
-                >
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {place.type}
-                  </p>
-                  <h3 className="mt-1 font-display text-base font-bold">{place.label}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{place.distance}</p>
-                </div>
-              );
-            })}
-          </div>
-        </SectionShell>
-
-        <SectionShell muted>
-          <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
-            <HouseRulesGuidelines />
-            <div>
-              <SectionTitle eyebrow="Contact" title="Talk to the property manager" />
-              <div className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-lift">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={p.manager.photo}
-                    alt={p.manager.name}
-                    loading="lazy"
-                    className="h-16 w-16 rounded-2xl object-cover"
-                  />
-                  <div>
-                    <h3 className="font-display text-xl font-bold">{p.manager.name}</h3>
-                    <p className="text-sm text-muted-foreground">{p.manager.role}</p>
-                    <p className="mt-1 text-sm font-semibold">{p.manager.phone}</p>
-                  </div>
-                </div>
-                <form onSubmit={submitInquiry} className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <input
-                    value={inquiry.name}
-                    onChange={(event) => updateInquiry("name", event.currentTarget.value)}
-                    className="rounded-xl border border-border bg-background px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[color:var(--brand)]"
-                    placeholder="Your name"
-                    aria-label="Your name"
-                  />
-                  <input
-                    value={inquiry.phone}
-                    onChange={(event) => updateInquiry("phone", event.currentTarget.value)}
-                    className="rounded-xl border border-border bg-background px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[color:var(--brand)]"
-                    placeholder="Phone number"
-                    aria-label="Phone number"
-                  />
-                  <input
-                    value={inquiry.visitDate}
-                    onChange={(event) => updateInquiry("visitDate", event.currentTarget.value)}
-                    className="rounded-xl border border-border bg-background px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[color:var(--brand)] sm:col-span-2"
-                    placeholder="Preferred visit date"
-                    aria-label="Preferred visit date"
-                  />
-                  <textarea
-                    value={inquiry.message}
-                    onChange={(event) => updateInquiry("message", event.currentTarget.value)}
-                    className="rounded-xl border border-border bg-background px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[color:var(--brand)] sm:col-span-2"
-                    rows={3}
-                    placeholder="Message"
-                    aria-label="Message"
-                  />
-                  <button
-                    type="submit"
-                    className="rounded-full gradient-brand px-5 py-3 text-sm font-bold text-white shadow-soft sm:col-span-2"
-                  >
-                    {twinValue(twin, "global-labels", "labels", "send", "Send Inquiry")}
-                  </button>
-                </form>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <a
-                    href={p.manager.whatsappHref}
-                    className="rounded-full border border-border px-4 py-3 text-center text-sm font-bold hover:bg-accent"
-                  >
-                    {twinValue(
-                      twin,
-                      "global-labels",
-                      "labels",
-                      "whatsapp",
-                      settings.secondaryCtaText,
-                    )}
-                  </a>
-                  <a
-                    href={p.manager.phoneHref}
-                    className="rounded-full border border-border px-4 py-3 text-center text-sm font-bold hover:bg-accent"
-                  >
-                    {twinValue(twin, "global-labels", "labels", "call", "Call Now")}
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </SectionShell>
-
-        <SectionShell>
-          <SectionTitle
-            eyebrow="Similar"
-            title={twinValue(twin, "global-labels", "labels", "similar", "Similar properties")}
-          />
-          <div className="mt-6 flex gap-5 overflow-x-auto pb-3 snap-x">
-            {locationAwareSimilar.map((item) => (
-              <div key={item.slug} className="w-[310px] shrink-0 snap-start md:w-[360px]">
-                <PropertyCard p={item} />
-              </div>
-            ))}
-          </div>
-        </SectionShell>
-
-        {lightboxIndex !== null && (
-          <div
-            className="fixed inset-0 z-[60] bg-slate-950/95 p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Image preview"
-          >
-            <button
-              type="button"
-              onClick={() => setLightboxIndex(null)}
-              className="absolute right-4 top-4 rounded-full bg-white/10 p-3 text-white backdrop-blur transition hover:bg-white/20"
-              aria-label="Close image preview"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <div className="flex h-full items-center justify-center">
-              <img
-                src={previewGallery[lightboxIndex] ?? previewGallery[0] ?? p.image}
-                alt={`${p.name} fullscreen preview`}
-                className="max-h-[88vh] max-w-full rounded-2xl object-contain shadow-lift"
-              />
-            </div>
-            <div className="absolute inset-x-0 bottom-4 flex justify-center gap-2 px-4">
-              {previewGallery.map((img, idx) => (
-                <button
-                  key={img + idx}
-                  type="button"
-                  onClick={() => setLightboxIndex(idx)}
-                  className={`h-14 w-16 overflow-hidden rounded-xl border ${idx === lightboxIndex ? "border-white" : "border-white/20"}`}
-                  aria-label={`Show fullscreen image ${idx + 1}`}
-                >
-                  <img src={img} alt="" className="h-full w-full object-cover" />
-                </button>
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {gallery.slice(0, 3).map((g, i) => (
+                <img
+                  key={g}
+                  src={g}
+                  alt={`${displayName} thumbnail ${i + 1}`}
+                  loading="lazy"
+                  className={`h-24 w-full rounded-2xl object-cover ${i === 0 ? "ring-2 ring-[color:var(--brand)]" : ""}`}
+                />
               ))}
             </div>
+            <div className="mt-8">
+              <HighlightsSection />
+            </div>
           </div>
-        )}
-      </main>
+
+          <aside className="h-fit space-y-4 rounded-3xl border border-border bg-card p-6 shadow-lift lg:sticky lg:top-24">
+            <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--brand)]">
+              <MapPin className="h-4 w-4" /> {area}, Mumbai
+            </div>
+            <h1 className="font-display text-4xl font-bold leading-tight">{displayName}</h1>
+            <div>
+              <p className="font-display text-4xl font-bold">
+                Rs. {displayRent.toLocaleString("en-IN")}
+                <span className="text-base font-medium text-muted-foreground"> /month onwards</span>
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">Zero brokerage. Free property visit.</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-[color:var(--surface)] p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Occupancy</p>
+                <p className="mt-1 font-semibold">{activeRoom.title}</p>
+              </div>
+              <div className="rounded-2xl bg-[color:var(--surface)] p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Station</p>
+                <p className="mt-1 font-semibold">{stationKm} km</p>
+              </div>
+              <div className="rounded-2xl bg-[color:var(--surface)] p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Options</p>
+                <p className="mt-1 font-semibold">Single, Double, Triple</p>
+              </div>
+              <div className="rounded-2xl bg-[color:var(--surface)] p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Support</p>
+                <p className="mt-1 font-semibold">24x7 assistance</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold">Choose as per requirement</p>
+              {roomTypes.map((room) => (
+                <Link
+                  key={room.label}
+                  to="/properties/$slug"
+                  params={{ slug: room.slug }}
+                  search={locationSearch}
+                  className={`flex items-center justify-between gap-3 rounded-2xl border p-3 text-sm transition hover:bg-accent ${
+                    activeRoom.label === room.label ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)] text-[color:var(--brand)]" : "border-border"
+                  }`}
+                >
+                  <span>
+                    <span className="block font-bold">{room.label}</span>
+                    <span className="text-xs text-muted-foreground">{room.note}</span>
+                  </span>
+                  <span className="font-bold">Rs. {(baseRent + room.extra).toLocaleString("en-IN")}</span>
+                </Link>
+              ))}
+            </div>
+
+            <Link to="/contact" className="block rounded-full gradient-brand px-5 py-3 text-center text-sm font-semibold text-white shadow-soft">
+              Schedule Free Visit
+            </Link>
+            <a href="https://wa.me/918879779777" className="block rounded-full border border-border px-5 py-3 text-center text-sm font-semibold hover:bg-accent">
+              <MessageCircle className="-mt-0.5 mr-1 inline h-4 w-4 text-[#25D366]" /> WhatsApp
+            </a>
+            <a href="tel:+918879779777" className="block rounded-full border border-border px-5 py-3 text-center text-sm font-semibold hover:bg-accent">
+              <Phone className="-mt-0.5 mr-1 inline h-4 w-4" /> Call Now
+            </a>
+            <div className="rounded-2xl bg-[color:var(--surface)] p-3 text-xs text-muted-foreground">
+              Final rent, deposit and room allocation are confirmed by the property manager after the visit.
+            </div>
+          </aside>
+        </div>
+
+        <div className="mt-14 space-y-14">
+          <section>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Description</p>
+            <h2 className="mt-2 font-display text-3xl font-bold">About this property</h2>
+            <p className="mt-4 max-w-4xl text-muted-foreground">
+              MyRoomiee offers managed PG accommodation in {area} for students and working professionals who want a clean, secure and fully furnished place to stay. The room options are practical, air conditioned and supported by WiFi, housekeeping and responsive local assistance.
+            </p>
+          </section>
+
+          <FeatureAmenityList />
+
+          <section>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Nearby</p>
+            <h2 className="mt-2 font-display text-3xl font-bold">Nearby places</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {nearbyItems.map((n) => (
+                <div key={n.label} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
+                    <n.icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold">{n.label}</p>
+                    <p className="text-xs text-muted-foreground">{n.dist}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Location</p>
+            <h2 className="mt-2 font-display text-3xl font-bold">Map</h2>
+            <div className="mt-5 overflow-hidden rounded-3xl border border-border">
+              <iframe title="Map" src={`https://www.google.com/maps?q=${encodeURIComponent(`${area} Mumbai`)}&output=embed`} className="h-[360px] w-full" loading="lazy" />
+            </div>
+          </section>
+
+          <div className="grid gap-10 lg:grid-cols-[1fr_420px]">
+            <PropertyPolicySection />
+            <ContactManagerCard />
+          </div>
+
+          <section>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Similar</p>
+            <h2 className="mt-2 font-display text-3xl font-bold">Similar room options</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {roomTypes.map((room) => (
+                <Link
+                  key={room.label}
+                  to="/properties/$slug"
+                  params={{ slug: room.slug }}
+                  search={locationSearch}
+                  className={`rounded-2xl border p-5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift ${
+                    activeRoom.label === room.label ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)]" : "border-border bg-card"
+                  }`}
+                >
+                  <p className="text-sm font-semibold">{room.title}</p>
+                  <p className="mt-2 font-display text-2xl font-bold">
+                    Rs. {(baseRent + room.extra).toLocaleString("en-IN")}
+                    <span className="text-sm font-medium text-muted-foreground">/mo</span>
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">Includes AC, WiFi and housekeeping. Food is not included.</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </div>
+      </section>
     </SiteLayout>
   );
 }
 
-function HouseRulesGuidelines() {
-  const [openIndex, setOpenIndex] = useState(0);
+function HighlightsSection() {
+  const items = [
+    { icon: Home, label: "Fully Furnished", value: "Ready to Move In" },
+    { icon: Wifi, label: "AC + WiFi", value: "Included in Rent" },
+    { icon: Sparkles, label: "Daily", value: "Housekeeping Service" },
+    { icon: ShieldCheck, label: "Zero", value: "Brokerage Fees" },
+  ];
 
   return (
-    <div>
-      <SectionTitle eyebrow="Rules" title="House Rules & Stay Guidelines" />
-      <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-        To ensure a comfortable, safe and respectful living environment for all residents, the
-        following guidelines apply to every MyRoomiee property.
-      </p>
-      <div className="mt-6 space-y-3">
-        {houseRuleGroups.map((group, index) => {
-          const Icon = group.icon;
-          const isOpen = openIndex === index;
-
-          return (
-            <motion.div
-              key={group.title}
-              layout
-              className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft"
-            >
-              <button
-                type="button"
-                onClick={() => setOpenIndex(isOpen ? -1 : index)}
-                className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-[color:var(--surface)]"
-                aria-expanded={isOpen}
-              >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <span className="font-display text-base font-bold">{group.title}</span>
-                </span>
-                <ChevronDown
-                  className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${
-                    isOpen ? "rotate-180 text-[color:var(--brand)]" : ""
-                  }`}
-                />
-              </button>
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22, ease: "easeOut" }}
-                  >
-                    <div className="grid gap-2 border-t border-border px-4 py-4">
-                      {group.items.map((item) => (
-                        <div key={item} className="flex items-start gap-2.5 text-sm">
-                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand)]" />
-                          <span className="leading-6 text-muted-foreground">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
+    <section>
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Highlights</p>
+      <h2 className="mt-2 font-display text-3xl font-bold">Built for everyday comfort</h2>
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((item) => (
+          <div key={item.label} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
+              <item.icon className="h-5 w-5" />
+            </span>
+            <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">{item.label}</p>
+            <p className="mt-1 text-lg font-bold">{item.value}</p>
+          </div>
+        ))}
       </div>
-    </div>
-  );
-}
-
-function SectionShell({ children, muted = false }: { children: React.ReactNode; muted?: boolean }) {
-  return (
-    <section className={muted ? "bg-[color:var(--surface)] py-16" : "py-16"}>
-      <div className="mx-auto max-w-7xl px-5">{children}</div>
     </section>
   );
 }
 
-function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
+function FeatureAmenityList() {
   return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--brand)]">
-        {eyebrow}
-      </p>
-      <h2 className="mt-2 font-display text-3xl font-bold md:text-4xl">{title}</h2>
-    </div>
+    <section>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Amenities</p>
+          <h2 className="mt-2 font-display text-3xl font-bold">Features and amenities</h2>
+        </div>
+        <div className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-bold">
+          <BrandLogo className="h-8 w-8" />
+          MyRoomiee
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        {amenityGroups.map((group) => (
+          <div key={group.title} className="rounded-2xl border border-border bg-background p-5">
+            <h3 className="text-sm font-extrabold uppercase tracking-wide text-muted-foreground">{group.title}</h3>
+            <ul className="mt-4 space-y-3">
+              {group.items.map((item) => (
+                <li key={item.name} className="flex items-start gap-3 text-sm text-muted-foreground">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
+                    <item.icon className="h-4 w-4" />
+                  </span>
+                  <span className="pt-1">{item.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {[
+          { icon: Snowflake, label: "Air Conditioned" },
+          { icon: Wifi, label: "WiFi Included" },
+          { icon: Sparkles, label: "Daily Housekeeping" },
+          { icon: Camera, label: "CCTV Security" },
+          { icon: Droplet, label: "RO Drinking Water" },
+          { icon: Home, label: "Fully Furnished" },
+        ].map((item) => (
+          <div key={item.label} className="flex items-center gap-3 rounded-2xl bg-[color:var(--surface)] p-4 text-sm font-semibold">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
+              <item.icon className="h-5 w-5" />
+            </span>
+            {item.label}
+          </div>
+        ))}
+      </div>
+
+    </section>
   );
 }
 
-function InfoPill({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof MapPin;
-  label: string;
-  value: string;
-}) {
+function PropertyPolicySection() {
   return (
-    <div className="rounded-2xl bg-[color:var(--surface)] p-3">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Icon className="h-4 w-4" />
-        <span className="text-xs font-semibold uppercase tracking-wide">{label}</span>
+    <section>
+      <div className="max-w-3xl">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Rules</p>
+        <h2 className="mt-2 font-display text-3xl font-bold">House Rules and Stay Guidelines</h2>
+        <p className="mt-3 text-muted-foreground">
+          These MyRoomiee guidelines keep every property clean, safe and comfortable for residents. Exact property terms are confirmed before move-in.
+        </p>
       </div>
-      <p className="mt-1 font-bold">{value}</p>
-    </div>
+
+      <div className="mt-6 space-y-3">
+        {policySections.map((section) => (
+          <details key={section.title} className="group rounded-2xl border border-border bg-background shadow-soft transition open:border-[color:var(--brand)]/30 open:bg-card">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-bold text-foreground">
+              <span className="inline-flex min-w-0 items-center gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
+                  <CheckCircle2 className="h-4 w-4" />
+                </span>
+                {section.title}
+              </span>
+              <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition group-open:rotate-180" />
+            </summary>
+            <p className="border-t border-border px-5 py-4 text-sm leading-6 text-muted-foreground">{section.body}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ContactManagerCard() {
+  return (
+    <section>
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Contact</p>
+      <h2 className="mt-2 font-display text-3xl font-bold">Talk to the property manager</h2>
+      <div className="mt-5 rounded-3xl border border-border bg-card p-6 shadow-lift">
+        <div className="flex items-center gap-3">
+          <BrandLogo className="h-14 w-14" />
+          <div>
+            <p className="text-lg font-bold">MyRoomiee Support</p>
+            <p className="text-sm text-muted-foreground">Property Manager</p>
+            <p className="font-bold">+91 8879779777</p>
+          </div>
+        </div>
+        <form className="mt-5 grid gap-3">
+          <input className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Your name" />
+          <input className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Phone number" />
+          <input className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Preferred visit date" />
+          <textarea rows={3} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Message" />
+          <button type="button" className="rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white shadow-soft">Send Inquiry</button>
+        </form>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <a href="https://wa.me/918879779777" className="rounded-full border border-border px-5 py-3 text-center text-sm font-semibold hover:bg-accent">
+            <MessageCircle className="-mt-0.5 mr-1 inline h-4 w-4 text-[#25D366]" /> WhatsApp
+          </a>
+          <a href="tel:+918879779777" className="rounded-full border border-border px-5 py-3 text-center text-sm font-semibold hover:bg-accent">
+            <Phone className="-mt-0.5 mr-1 inline h-4 w-4" /> Call
+          </a>
+        </div>
+      </div>
+    </section>
   );
 }

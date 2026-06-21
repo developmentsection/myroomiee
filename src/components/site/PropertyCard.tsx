@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import type { Property } from "@/lib/properties";
 import { safePreviewImageList } from "@/lib/pg-locations";
 
-export function PropertyCard({ p }: { p: Property }) {
-  const previewImage = safePreviewImageList([p.image, ...p.gallery])[0] ?? p.image;
+export function PropertyCard({ p, detailSlug = "double-sharing-room" }: { p: Property; detailSlug?: string }) {
+  const previewImage = safePreviewImageList([p.image, ...(p.gallery ?? [])])[0] ?? p.image;
 
   return (
     <motion.div
@@ -15,7 +15,7 @@ export function PropertyCard({ p }: { p: Property }) {
     >
       <Link
         to="/properties/$slug"
-        params={{ slug: p.slug }}
+        params={{ slug: detailSlug }}
         search={{ location: `pg-in-${p.locationSlug}` }}
         aria-label={`View details for ${p.name}`}
         className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-border/80 bg-card shadow-soft outline-none transition duration-300 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2"
