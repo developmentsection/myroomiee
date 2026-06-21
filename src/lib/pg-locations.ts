@@ -73,10 +73,10 @@ export interface LocationPageData extends PgLocationData {
 }
 
 const safeFrontImageNumbers: Record<string, number[]> = {
-  "ashok-samrath-building-girls": [2, 3, 5, 6, 8, 9, 10, 11, 13],
+  "ashok-samrath-building-girls": [2, 3, 5, 6, 9, 10, 11, 13],
   "om-gautam-boys": [1, 2, 5, 6, 8, 10, 11, 12, 14, 15, 16],
   "shivdham-building-1-boys": [2, 3, 7, 9, 10, 11],
-  "shivdham-building-1-girls": [1, 2, 3, 6, 10, 11],
+  "shivdham-building-1-girls": [1, 2, 3, 5, 6, 10, 11],
   "shivdham-building-boys": [1, 2, 5, 16, 18, 25],
   "vaibhav-kutir-heights": [4, 9, 11, 14, 18, 19, 22],
 };

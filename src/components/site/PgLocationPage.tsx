@@ -8,8 +8,9 @@ import {
   Box, Shirt, CheckCircle2, BedDouble, Users, IndianRupee,
 } from "lucide-react";
 import { SiteLayout } from "./SiteLayout";
-import type { PgLocationData, PgLandmark } from "@/lib/pg-locations";
+import type { PgLocationData, PgLandmark, PgRoomCard } from "@/lib/pg-locations";
 import { pgContact, safePreviewGallery } from "@/lib/pg-locations";
+import { properties, resolvePropertyBySlug, type Property, type SharingType } from "@/lib/properties";
 
 const amenitiesGrid = [
   { icon: Snowflake, name: "AC" }, { icon: Wifi, name: "WiFi" }, { icon: Camera, name: "CCTV" },
@@ -57,29 +58,30 @@ export function PgLocationPage({ data }: { data: PgLocationData }) {
 
 /* ---------------- HERO ---------------- */
 function Hero({ data }: { data: PgLocationData }) {
+  const startingRent = locationStartingRent(data);
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-x-0 top-0 -z-10 h-[620px] bg-gradient-to-b from-[color:var(--brand-soft)] to-transparent" />
       <div className="mx-auto max-w-7xl px-5 pt-14 pb-12 md:pt-20">
-        <div className="grid items-center gap-12 md:grid-cols-2">
-          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-medium text-muted-foreground shadow-soft backdrop-blur">
+        <div className="grid min-w-0 items-center gap-12 md:grid-cols-2">
+          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="min-w-0">
+            <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-medium text-muted-foreground shadow-soft backdrop-blur">
               <ShieldCheck className="h-3.5 w-3.5 text-[color:var(--brand)]" />
               Verified PG • {data.area} • {data.city}
             </span>
-            <h1 className="mt-4 font-display text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
+            <h1 className="mt-4 break-words font-display text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
               {data.headline.split(" in ")[0]} in <span className="text-gradient-brand">{data.area}</span>
             </h1>
-            <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">{data.subheadline}</p>
+            <p className="mt-5 max-w-xl break-words text-base text-muted-foreground md:text-lg">{data.subheadline}</p>
 
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/contact" className="inline-flex items-center gap-2 rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:shadow-lift">
+            <div className="mt-7 grid w-full gap-3 sm:flex sm:flex-wrap">
+              <Link to="/contact" className="inline-flex min-w-0 items-center justify-center gap-2 rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:shadow-lift">
                 Book Visit <ArrowRight className="h-4 w-4" />
               </Link>
-              <a href={pgContact.whatsappHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent">
+              <a href={pgContact.whatsappHref} target="_blank" rel="noreferrer" className="inline-flex min-w-0 items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent">
                 <MessageCircle className="h-4 w-4 text-[#25D366]" /> WhatsApp
               </a>
-              <a href={pgContact.phoneHref} className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent">
+              <a href={pgContact.phoneHref} className="inline-flex min-w-0 items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent">
                 <Phone className="h-4 w-4" /> Call Now
               </a>
             </div>
@@ -89,9 +91,9 @@ function Hero({ data }: { data: PgLocationData }) {
                 { k: `${data.googleRating}★`, v: `${data.googleReviews}+ reviews` },
                 { k: `${data.propertyCount}+`, v: "Properties" },
                 { k: `${data.residentCount}+`, v: "Residents" },
-                { k: `₹${data.startingRent.toLocaleString("en-IN")}`, v: "Starting / mo" },
+                { k: `₹${startingRent.toLocaleString("en-IN")}`, v: "Starting / mo" },
               ].map((s) => (
-                <div key={s.v}>
+                <div key={s.v} className="min-w-0">
                   <dt className="font-display text-2xl font-bold">{s.k}</dt>
                   <dd className="text-xs text-muted-foreground">{s.v}</dd>
                 </div>
@@ -167,6 +169,42 @@ const propertySlugForSharing = (sharing: string) => {
   return "double-sharing-room";
 };
 
+const sharingTypeForRoom = (sharing: string): SharingType => {
+  const normalized = sharing.toLowerCase();
+  if (normalized.includes("single")) return "Single";
+  if (normalized.includes("triple")) return "Triple";
+  return "Double";
+};
+
+const propertyMatchesGender = (property: Property, gender: "boys" | "girls") =>
+  property.gender === "any" || property.gender === gender;
+
+const propertyForRoom = (room: PgRoomCard, gender: "boys" | "girls") => {
+  const sharing = sharingTypeForRoom(room.sharing);
+  const exactProperty = room.propertySlug ? resolvePropertyBySlug(room.propertySlug) : undefined;
+  if (exactProperty?.sharing.includes(sharing) && propertyMatchesGender(exactProperty, gender)) return exactProperty;
+
+  return (
+    properties.find((property) => propertyMatchesGender(property, gender) && property.sharing.includes(sharing)) ??
+    properties.find((property) => property.sharing.includes(sharing)) ??
+    properties[0]
+  );
+};
+
+const roomDisplayPrice = (room: PgRoomCard, gender: "boys" | "girls") => {
+  const property = propertyForRoom(room, gender);
+  const sharing = sharingTypeForRoom(room.sharing);
+  return property?.prices[sharing] ?? room.priceFrom ?? property?.priceFrom ?? 0;
+};
+
+const locationStartingRent = (data: PgLocationData) => {
+  const prices = [
+    ...data.boys.map((room) => roomDisplayPrice(room, "boys")),
+    ...data.girls.map((room) => roomDisplayPrice(room, "girls")),
+  ].filter((price) => price > 0);
+  return prices.length ? Math.min(...prices) : data.startingRent;
+};
+
 function PgRooms({ data }: { data: PgLocationData }) {
   const [gender, setGender] = useState<"boys" | "girls">("boys");
   const list = useMemo(() => (gender === "boys" ? data.boys : data.girls), [gender, data]);
@@ -194,18 +232,21 @@ function PgRooms({ data }: { data: PgLocationData }) {
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
           className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
-          {list.map((r, i) => (
-            <motion.div
-              key={r.type + i}
-              variants={{ hidden: { opacity: 0, y: 14, scale: 0.98 }, show: { opacity: 1, y: 0, scale: 1 } }}
-              className="h-full"
-            >
-              <Link
-                to="/properties/$slug"
-                params={{ slug: propertySlugForSharing(r.sharing) }}
-                search={{ location: data.slug }}
-                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-soft outline-none transition hover:-translate-y-1 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2"
+          {list.map((r, i) => {
+            const property = propertyForRoom(r, gender);
+            const price = roomDisplayPrice(r, gender);
+            return (
+              <motion.div
+                key={r.type + i}
+                variants={{ hidden: { opacity: 0, y: 14, scale: 0.98 }, show: { opacity: 1, y: 0, scale: 1 } }}
+                className="h-full"
               >
+                <Link
+                  to="/properties/$slug"
+                  params={{ slug: propertySlugForSharing(r.sharing) }}
+                  search={{ location: data.slug, property: property.slug }}
+                  className="group flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-soft outline-none transition hover:-translate-y-1 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2"
+                >
               <div className="relative aspect-[4/3] overflow-hidden">
                 <img src={bedroomImage(data, i % 3)} alt={`${r.type} PG in ${data.area}`} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur">
@@ -216,9 +257,9 @@ function PgRooms({ data }: { data: PgLocationData }) {
                 </span>
               </div>
               <div className="flex flex-1 flex-col gap-3 p-5">
-                <div>
-                  <h3 className="font-display text-lg font-semibold">{r.type}</h3>
-                  <p className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground">
+                <div className="min-w-0">
+                  <h3 className="font-display text-lg font-semibold leading-tight">{r.type}</h3>
+                  <p className="mt-1 inline-flex max-w-full items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5" /> {data.area}, {data.city}
                   </p>
                 </div>
@@ -227,12 +268,12 @@ function PgRooms({ data }: { data: PgLocationData }) {
                     <span key={a} className="rounded-full bg-[color:var(--surface-muted)] px-2.5 py-1 text-xs text-muted-foreground">{a}</span>
                   ))}
                 </div>
-                <div className="mt-auto flex items-end justify-between border-t border-border pt-3">
+                <div className="mt-auto flex min-w-0 items-end justify-between gap-3 border-t border-border pt-3">
                   <div>
                     <p className="text-xs text-muted-foreground">Starting from</p>
-                    <p className="font-display text-xl font-bold">₹{r.priceFrom.toLocaleString("en-IN")}<span className="text-sm font-medium text-muted-foreground">/mo</span></p>
+                    <p className="font-display text-xl font-bold">₹{price.toLocaleString("en-IN")}<span className="text-sm font-medium text-muted-foreground">/mo</span></p>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
                     <p className="text-xs font-semibold text-emerald-600">{r.sharing} option</p>
                     <span className="mt-1.5 inline-flex items-center gap-1 rounded-full gradient-brand px-3 py-1.5 text-xs font-semibold text-white shadow-soft">
                       View Details <ArrowRight className="h-3 w-3" />
@@ -240,9 +281,10 @@ function PgRooms({ data }: { data: PgLocationData }) {
                   </div>
                 </div>
               </div>
-              </Link>
-            </motion.div>
-          ))}
+                </Link>
+              </motion.div>
+            );
+          })}
         </motion.div>
       </AnimatePresence>
     </section>
@@ -256,17 +298,17 @@ function ServiceAreas({ data }: { data: PgLocationData }) {
   return (
     <section className="mx-auto max-w-7xl px-5 pb-20">
       <SectionHead eyebrow="Nearby Areas" title={`Explore PG locations around ${data.area}`} sub="All main locations and sub-area pages are clickable with updated MyRoomiee details." />
-      <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {areas.map((area) => (
           <Link
             key={area.href}
             to={area.href}
             className="group rounded-2xl border border-border bg-card p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-[color:var(--brand)]/40 hover:shadow-lift"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-display text-base font-semibold">{area.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{area.description}</p>
+            <div className="flex min-w-0 items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="break-words font-display text-base font-semibold">{area.name}</p>
+                <p className="mt-1 break-words text-sm text-muted-foreground">{area.description}</p>
               </div>
               {area.badge && <span className="shrink-0 rounded-full bg-[color:var(--brand-soft)] px-2 py-1 text-[10px] font-bold text-[color:var(--brand)]">{area.badge}</span>}
             </div>
@@ -566,8 +608,8 @@ function SectionHead({ eyebrow, title, sub, align = "center" }: { eyebrow?: stri
   return (
     <div className={`flex flex-col gap-3 ${cls}`}>
       {eyebrow && <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--brand)]">{eyebrow}</span>}
-      <h2 className="font-display text-3xl font-bold md:text-4xl">{title}</h2>
-      {sub && <p className="max-w-2xl text-muted-foreground">{sub}</p>}
+      <h2 className="max-w-full break-words font-display text-3xl font-bold md:text-4xl">{title}</h2>
+      {sub && <p className="max-w-2xl break-words text-muted-foreground">{sub}</p>}
     </div>
   );
 }

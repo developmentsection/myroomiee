@@ -28,10 +28,10 @@ function PrivacyPage() {
         </p>
         <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted-foreground">
           <p>
-            Welcome to My Roomiee ("Company", "we", "our", or "us"). Your privacy is important to
+            Welcome to MyRoomiee ("Company", "we", "our", or "us"). Your privacy is important to
             us, and we are committed to protecting your personal information and maintaining
             transparency regarding how your data is collected, used, stored, and protected. This
-            Privacy Policy explains how My Roomiee collects, uses, processes, stores, and safeguards
+            Privacy Policy explains how MyRoomiee collects, uses, processes, stores, and safeguards
             information provided by users ("you", "your", or "user") when accessing or using our
             website https://myroomiee.com/ and related services (collectively referred to as the
             "Platform").
@@ -49,7 +49,7 @@ function PrivacyPage() {
               1. About Our Business
             </h2>
             <p>
-              My Roomiee is a Mumbai-based accommodation platform that helps users discover and
+              MyRoomiee is a Mumbai-based accommodation platform that helps users discover and
               inquire about furnished PG accommodation, rental stays, and premium PG accommodation
               options in areas including Malad, Goregaon, Jogeshwari, and nearby locations. We
               provide information related to accommodation facilities, amenities, room availability,
@@ -245,7 +245,7 @@ function PrivacyPage() {
             </h2>
             <p>
               By submitting your information on the Platform, you consent to receive communication
-              from My Roomiee through phone calls, SMS, WhatsApp messages, email communication, and
+              from MyRoomiee through phone calls, SMS, WhatsApp messages, email communication, and
               promotional notifications. These communications may include property recommendations,
               booking assistance, service updates, promotional offers, and customer support
               communication. Users may opt out of promotional communication at any time by
@@ -363,7 +363,7 @@ function PrivacyPage() {
             </h2>
             <div className="space-y-1">
               <p>
-                <strong>My Roomiee</strong>
+                <strong>MyRoomiee</strong>
               </p>
               <p>Website: https://myroomiee.com/</p>
               <p>Email: contact@myroomiee.com</p>
@@ -379,7 +379,7 @@ function PrivacyPage() {
             <h2 className="font-display text-xl font-semibold text-foreground">20. Consent</h2>
             <p>
               By accessing or using the Platform, submitting inquiry forms, contacting us, or using
-              any services provided by My Roomiee, you acknowledge that you have read this Privacy
+              any services provided by MyRoomiee, you acknowledge that you have read this Privacy
               Policy, understand the collection and usage of information, consent to the practices
               described herein, and agree to the Terms & Conditions of the Platform. If you do not
               agree with this Privacy Policy, please discontinue use of the Platform immediately.
@@ -387,7 +387,7 @@ function PrivacyPage() {
           </section>
 
           <p className="pt-4 text-xs text-muted-foreground">
-            © 2026 My Roomiee. All Rights Reserved.
+            © 2026 MyRoomiee. All Rights Reserved.
           </p>
         </div>
       </article>

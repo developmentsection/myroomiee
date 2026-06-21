@@ -440,6 +440,7 @@ function PropertyRotator() {
     return () => clearInterval(t);
   }, [items.length]);
   const p = items[i];
+  const targetSlug = p.sharing.includes("Double") ? "double-sharing-room" : p.sharing.includes("Single") ? "single-ac-room" : "triple-sharing-room";
   return (
     <section className="mx-auto max-w-7xl px-5 py-20">
       <SectionHead eyebrow="Now Showing" title="Featured property of the moment" sub="A rotating showcase of newly available rooms across Mumbai." />
@@ -507,8 +508,8 @@ function PropertyRotator() {
             </div>
             <Link
               to="/properties/$slug"
-              params={{ slug: "double-sharing-room" }}
-              search={{ location: `pg-in-${p.locationSlug}` }}
+              params={{ slug: targetSlug }}
+              search={{ location: `pg-in-${p.locationSlug}`, property: p.slug }}
               className="inline-flex items-center gap-2 rounded-full gradient-brand px-5 py-2.5 text-sm font-semibold text-white shadow-soft hover:shadow-lift"
             >
               Book Visit <ArrowRight className="h-4 w-4" />

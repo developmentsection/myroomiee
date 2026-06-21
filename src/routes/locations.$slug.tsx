@@ -9,7 +9,9 @@ export const Route = createFileRoute("/locations/$slug")({
     const loc = mumbaiLocations.find((l) => l.slug === params.slug);
     if (!loc) throw notFound();
     const related = properties.filter((p) => p.locationSlug === loc.slug);
-    return { loc, related };
+    const displayProperties = related.length > 0 ? related : properties.slice(0, 3);
+    const startingRent = Math.min(...displayProperties.map((property) => property.priceFrom));
+    return { loc, related, startingRent };
   },
   head: ({ loaderData }) => ({
     meta: loaderData ? [
@@ -33,7 +35,7 @@ export const Route = createFileRoute("/locations/$slug")({
 });
 
 function LocationDetail() {
-  const { loc, related } = Route.useLoaderData();
+  const { loc, related, startingRent } = Route.useLoaderData();
   return (
     <SiteLayout>
       <section className="border-b border-border bg-[color:var(--surface)]">
@@ -51,7 +53,7 @@ function LocationDetail() {
         <div className="grid gap-5 md:grid-cols-3">
           {[
             { icon: ShieldCheck, t: "Verified properties", d: `Every PG in ${loc.name} is physically inspected.` },
-            { icon: IndianRupee, t: "Transparent pricing", d: "From ₹8,499/mo. Zero brokerage. No hidden charges." },
+            { icon: IndianRupee, t: "Transparent pricing", d: `From Rs. ${startingRent.toLocaleString("en-IN")}/mo. Zero brokerage. No hidden charges.` },
             { icon: Sparkles, t: "Premium amenities", d: "AC, WiFi, CCTV and housekeeping included." },
           ].map((b) => (
             <div key={b.t} className="rounded-3xl border border-border bg-card p-6 shadow-soft">

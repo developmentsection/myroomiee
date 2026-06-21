@@ -28,7 +28,7 @@ function TermsPage() {
         </p>
         <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted-foreground">
           <p>
-            Welcome to My Roomiee ("Company", "we", "our", or "us"). These Terms & Conditions
+            Welcome to MyRoomiee ("Company", "we", "our", or "us"). These Terms & Conditions
             ("Terms") govern your access to and use of our website https://myroomiee.com/, services,
             inquiries, communication channels, and related platforms (collectively referred to as
             the "Platform"). By accessing, browsing, using, or submitting information through the
@@ -40,10 +40,10 @@ function TermsPage() {
 
           <section className="space-y-3">
             <h2 className="font-display text-xl font-semibold text-foreground">
-              1. About My Roomiee
+              1. About MyRoomiee
             </h2>
             <p>
-              My Roomiee is a Mumbai-based accommodation and PG discovery platform that provides
+              MyRoomiee is a Mumbai-based accommodation and PG discovery platform that provides
               information regarding furnished PG accommodation, rental stays, premium PG rooms, and
               related housing services in Mumbai including Malad, Goregaon, Jogeshwari, and nearby
               areas. The Platform allows users to browse accommodation information, submit
@@ -95,7 +95,7 @@ function TermsPage() {
               4. Accommodation Information
             </h2>
             <p>
-              My Roomiee attempts to ensure that property descriptions, amenities, room
+              MyRoomiee attempts to ensure that property descriptions, amenities, room
               availability, pricing, photographs, and other accommodation-related details are
               reasonably accurate. However, availability may change without notice; prices may vary;
               amenities may differ from actual conditions; and certain photographs may be
@@ -123,7 +123,7 @@ function TermsPage() {
             </h2>
             <p>
               By submitting your contact details through the Platform, you expressly consent to
-              receiving communication from My Roomiee through calls, SMS, WhatsApp, email, and
+              receiving communication from MyRoomiee through calls, SMS, WhatsApp, email, and
               notifications. These communications may include accommodation recommendations, service
               updates, booking-related discussions, promotional offers, and customer support
               communication. Users may opt out of promotional communication by contacting us
@@ -138,7 +138,7 @@ function TermsPage() {
             <p>
               Any booking, reservation, deposit payment, or rental agreement entered into between
               users and accommodation providers shall be governed by mutually agreed terms between
-              the respective parties. My Roomiee may assist with inquiries and communication but
+              the respective parties. MyRoomiee may assist with inquiries and communication but
               shall not be liable for disputes between parties, refund disagreements, rental
               conflicts, security deposit issues, accommodation dissatisfaction, or personal
               disagreements between occupants. Users are advised to review all terms carefully,
@@ -153,7 +153,7 @@ function TermsPage() {
             <p>
               Prices displayed on the Platform may vary depending on room type, occupancy,
               availability, seasonal demand, management decisions, and property-specific conditions.
-              My Roomiee reserves the right to update, modify, or remove pricing information without
+              MyRoomiee reserves the right to update, modify, or remove pricing information without
               prior notice.
             </p>
           </section>
@@ -178,7 +178,7 @@ function TermsPage() {
             <p>
               All content available on the Platform including text, graphics, logos, design,
               photographs, branding, layouts, website structure, and content arrangement is the
-              property of My Roomiee unless otherwise stated and is protected under applicable
+              property of MyRoomiee unless otherwise stated and is protected under applicable
               intellectual property laws. Users may not reproduce, copy, distribute, modify,
               republish, or commercially exploit any content from the Platform without prior written
               permission.
@@ -203,7 +203,7 @@ function TermsPage() {
               12. Platform Availability
             </h2>
             <p>
-              We strive to maintain uninterrupted Platform availability. However, My Roomiee does
+              We strive to maintain uninterrupted Platform availability. However, MyRoomiee does
               not guarantee continuous uptime, error-free operation, uninterrupted access, or
               complete accuracy of information. The Platform may occasionally become unavailable due
               to maintenance, technical failures, server downtime, upgrades, or circumstances beyond
@@ -218,7 +218,7 @@ function TermsPage() {
             <p>
               Users may voluntarily submit reviews, comments, feedback, inquiry details,
               testimonials, images, and communication content through the Platform or associated
-              communication channels. By submitting such content, you grant My Roomiee a
+              communication channels. By submitting such content, you grant MyRoomiee a
               non-exclusive, royalty-free, worldwide right to use, reproduce, publish, display,
               modify, and distribute such content for operational, marketing, promotional, and
               service-related purposes.
@@ -226,7 +226,7 @@ function TermsPage() {
             <p>
               Users agree not to submit content that is unlawful, abusive, defamatory, misleading,
               offensive, fraudulent, infringes intellectual property rights, or violates applicable
-              laws. My Roomiee reserves the right to remove or restrict content at its discretion.
+              laws. MyRoomiee reserves the right to remove or restrict content at its discretion.
             </p>
           </section>
 
@@ -235,7 +235,7 @@ function TermsPage() {
               14. Limitation of Liability
             </h2>
             <p>
-              To the maximum extent permitted under applicable law, My Roomiee, its owners,
+              To the maximum extent permitted under applicable law, MyRoomiee, its owners,
               employees, representatives, affiliates, partners, and service providers shall not be
               liable for direct or indirect losses, accommodation disputes, property conditions,
               rental disagreements, payment disputes, data loss, service interruptions, user
@@ -252,7 +252,7 @@ function TermsPage() {
             </h2>
             <p>
               The Platform and services are provided on an "as is" and "as available" basis without
-              warranties of any kind, whether express or implied. My Roomiee does not guarantee
+              warranties of any kind, whether express or implied. MyRoomiee does not guarantee
               uninterrupted service, complete accuracy, error-free operation, suitability for
               specific purposes, or guaranteed accommodation outcomes. We disclaim all warranties
               including merchantability, fitness for a particular purpose, non-infringement, and
@@ -265,7 +265,7 @@ function TermsPage() {
               16. Indemnification
             </h2>
             <p>
-              Users agree to indemnify, defend, and hold harmless My Roomiee, its directors,
+              Users agree to indemnify, defend, and hold harmless MyRoomiee, its directors,
               employees, affiliates, agents, and representatives from and against any claims,
               liabilities, damages, losses, expenses, or legal costs arising out of misuse of the
               Platform, violation of these Terms, unlawful activities, false information submitted
@@ -279,7 +279,7 @@ function TermsPage() {
               17. Suspension & Termination
             </h2>
             <p>
-              My Roomiee reserves the right to suspend, restrict, or terminate access to the
+              MyRoomiee reserves the right to suspend, restrict, or terminate access to the
               Platform at any time without prior notice if a user violates these Terms, engages in
               suspicious activity, submits false inquiries, abuses communication channels, attempts
               unauthorized access, or engages in fraudulent or harmful behavior. Termination may
@@ -306,7 +306,7 @@ function TermsPage() {
             </h2>
             <p>
               The Platform may contain links to third-party websites, services, advertisements, or
-              social media platforms. My Roomiee does not endorse external websites, does not
+              social media platforms. MyRoomiee does not endorse external websites, does not
               guarantee external content, is not responsible for third-party practices, and shall
               not be liable for damages arising from external links. Users access third-party
               platforms at their own discretion and risk.
@@ -318,7 +318,7 @@ function TermsPage() {
               20. Force Majeure
             </h2>
             <p>
-              My Roomiee shall not be held liable for failure or delay in performance caused by
+              MyRoomiee shall not be held liable for failure or delay in performance caused by
               circumstances beyond reasonable control including but not limited to natural
               disasters, floods, fires, pandemics, strikes, government restrictions, internet
               failures, cyber attacks, power outages, and technical breakdowns.
@@ -358,7 +358,7 @@ function TermsPage() {
           <section className="space-y-3">
             <h2 className="font-display text-xl font-semibold text-foreground">24. Waiver</h2>
             <p>
-              Failure by My Roomiee to enforce any provision of these Terms shall not constitute a
+              Failure by MyRoomiee to enforce any provision of these Terms shall not constitute a
               waiver of such rights. Any waiver shall only be valid if made in writing.
             </p>
           </section>
@@ -391,7 +391,7 @@ function TermsPage() {
             </h2>
             <div className="space-y-1">
               <p>
-                <strong>My Roomiee</strong>
+                <strong>MyRoomiee</strong>
               </p>
               <p>Website: https://myroomiee.com/</p>
               <p>Email: contact@myroomiee.com</p>
@@ -417,7 +417,7 @@ function TermsPage() {
           </section>
 
           <p className="pt-4 text-xs text-muted-foreground">
-            © 2026 My Roomiee. All Rights Reserved.
+            © 2026 MyRoomiee. All Rights Reserved.
           </p>
         </div>
       </article>

@@ -4,8 +4,20 @@ import { motion } from "framer-motion";
 import type { Property } from "@/lib/properties";
 import { safePreviewImageList } from "@/lib/pg-locations";
 
+const slugForSharing = (sharing: Property["sharing"][number]) => {
+  if (sharing === "Single") return "single-ac-room";
+  if (sharing === "Triple") return "triple-sharing-room";
+  return "double-sharing-room";
+};
+
 export function PropertyCard({ p, detailSlug = "double-sharing-room" }: { p: Property; detailSlug?: string }) {
   const previewImage = safePreviewImageList([p.image, ...(p.gallery ?? [])])[0] ?? p.image;
+  const prices = p.sharing.filter((sharing) => p.prices[sharing]).map((sharing) => ({
+    sharing,
+    price: p.prices[sharing]!,
+  }));
+  const requestedSharing = detailSlug.includes("single") ? "Single" : detailSlug.includes("triple") ? "Triple" : "Double";
+  const targetSlug = p.sharing.includes(requestedSharing) ? detailSlug : slugForSharing(p.sharing[0]);
 
   return (
     <motion.div
@@ -15,8 +27,8 @@ export function PropertyCard({ p, detailSlug = "double-sharing-room" }: { p: Pro
     >
       <Link
         to="/properties/$slug"
-        params={{ slug: detailSlug }}
-        search={{ location: `pg-in-${p.locationSlug}` }}
+        params={{ slug: targetSlug }}
+        search={{ location: `pg-in-${p.locationSlug}`, property: p.slug }}
         aria-label={`View details for ${p.name}`}
         className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-border/80 bg-card shadow-soft outline-none transition duration-300 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2"
       >
@@ -33,7 +45,7 @@ export function PropertyCard({ p, detailSlug = "double-sharing-room" }: { p: Pro
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col gap-4 p-5">
+        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-5">
           <div>
             <h3 className="font-display text-lg font-bold leading-tight text-foreground">
               {p.name}
@@ -41,6 +53,18 @@ export function PropertyCard({ p, detailSlug = "double-sharing-room" }: { p: Pro
             <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 text-[color:var(--brand)]" /> {p.location}, Mumbai
             </p>
+          </div>
+
+          <div className="grid gap-2 rounded-2xl bg-[color:var(--surface)] p-3 text-xs">
+            <p className="font-bold text-foreground">Room pricing</p>
+            <div className="grid grid-cols-3 gap-2">
+              {prices.map(({ sharing, price }) => (
+                <div key={sharing} className="min-w-0 rounded-xl bg-background px-2 py-2 text-center">
+                  <p className="truncate text-[11px] font-semibold text-muted-foreground">{sharing}</p>
+                  <p className="mt-0.5 text-sm font-extrabold text-foreground">Rs. {price.toLocaleString("en-IN")}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="mt-auto grid grid-cols-2 gap-3 rounded-2xl bg-[color:var(--surface)] p-3 text-xs">

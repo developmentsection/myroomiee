@@ -1,8 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { BrandLogo } from "@/components/site/BrandLogo";
-import { properties, propertyImages, resolvePropertyBySlug } from "@/lib/properties";
-import { resolveLocationPage, safePreviewGallery, safePreviewImageList } from "@/lib/pg-locations";
+import { properties, resolvePropertyBySlug } from "@/lib/properties";
+import { resolveLocationPage, safePreviewImageList } from "@/lib/pg-locations";
 import {
   Armchair,
   BedDouble,
@@ -11,6 +12,8 @@ import {
   Camera,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Droplet,
   Flame,
   Home,
@@ -32,9 +35,11 @@ import {
 export const Route = createFileRoute("/properties/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
     location: typeof search.location === "string" ? search.location : undefined,
+    property: typeof search.property === "string" ? search.property : undefined,
   }),
-  loader: ({ params }) => {
-    const p = resolvePropertyBySlug(params.slug);
+  loader: ({ params, location }) => {
+    const search = location.search as { property?: string };
+    const p = (search.property ? resolvePropertyBySlug(search.property) : undefined) ?? resolvePropertyBySlug(params.slug);
     if (!p) throw notFound();
     return p;
   },
@@ -70,11 +75,11 @@ export const Route = createFileRoute("/properties/$slug")({
   ),
 });
 
-const roomTypes = [
-  { label: "Single", slug: "single-ac-room", title: "Single AC Room", extra: 3500, note: "Private room option" },
-  { label: "Double", slug: "double-sharing-room", title: "Double Sharing", extra: 1500, note: "Two residents sharing" },
-  { label: "Triple", slug: "triple-sharing-room", title: "Triple Sharing", extra: 0, note: "Budget-friendly sharing" },
-];
+const roomTypeMeta = {
+  Single: { slug: "single-ac-room", title: "Single AC Room", note: "Private room option" },
+  Double: { slug: "double-sharing-room", title: "Double Sharing", note: "Two residents sharing" },
+  Triple: { slug: "triple-sharing-room", title: "Triple Sharing", note: "Budget-friendly sharing" },
+} as const;
 
 const amenityGroups = [
   {
@@ -156,10 +161,10 @@ const policySections = [
 ];
 
 const roomTypeFromSlug = (slug?: string) => {
-  if (slug?.includes("single")) return roomTypes[0];
-  if (slug?.includes("double")) return roomTypes[1];
-  if (slug?.includes("triple")) return roomTypes[2];
-  return roomTypes[1];
+  if (slug?.includes("single")) return "Single";
+  if (slug?.includes("double")) return "Double";
+  if (slug?.includes("triple")) return "Triple";
+  return "Double";
 };
 
 function PropertyDetail() {
@@ -179,19 +184,34 @@ export function PropertyDetailView({
   locationSlug?: string;
 }) {
   const locationData = locationSlug ? resolveLocationPage(locationSlug) : undefined;
-  const activeRoom = roomTypeFromSlug(routeSlug ?? p.slug);
+  const requestedSharing = roomTypeFromSlug(routeSlug ?? p.slug);
+  const roomTypes = p.sharing
+    .filter((label) => typeof p.prices[label] === "number")
+    .map((label) => ({ label, price: p.prices[label]!, ...roomTypeMeta[label] }));
+  const activeRoom = roomTypes.find((room) => room.label === requestedSharing) ?? roomTypes[0];
   const area = locationData?.area ?? p.location;
   const station = locationData?.station ?? p.station;
   const stationKm = locationData?.landmarks?.[0]?.distanceKm ?? p.stationKm;
-  const baseRent = locationData?.startingRent ?? p.priceFrom;
-  const displayRent = baseRent + activeRoom.extra;
-  const locationSearch = locationSlug ? { location: locationSlug } : {};
-  const gallery = (
-    locationData?.gallery?.length
-      ? safePreviewGallery(locationData.gallery).slice(0, 3).map((item) => item.src)
-      : safePreviewImageList([p.image, ...(p.gallery ?? [])])
-  ).slice(0, 3);
-  const displayName = `MyRoomiee ${area} ${activeRoom.title}`;
+  const displayRent = activeRoom?.price ?? p.priceFrom;
+  const locationSearch = locationSlug ? { location: locationSlug, property: p.slug } : { property: p.slug };
+  const allImages = useMemo(() => Array.from(new Set([p.image, ...(p.gallery ?? [])].filter(Boolean))), [p.gallery, p.image]);
+  const safeFrontImages = safePreviewImageList(allImages);
+  const gallery = [...safeFrontImages, ...allImages.filter((image) => !safeFrontImages.includes(image))];
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const mainImage = selectedImage && gallery.includes(selectedImage) ? selectedImage : (gallery[0] ?? p.image);
+  const activePreviewImage = gallery[previewIndex] ?? mainImage;
+  const openPreview = () => {
+    setPreviewIndex(Math.max(0, gallery.indexOf(mainImage)));
+    setPreviewOpen(true);
+  };
+  const showPreviewImage = (index: number) => {
+    const nextIndex = (index + gallery.length) % gallery.length;
+    setPreviewIndex(nextIndex);
+    setSelectedImage(gallery[nextIndex]);
+  };
+  const displayName = p.name;
   const nearbyItems = [
     { icon: Train, label: `${station} Station`, dist: `${stationKm} km` },
     { icon: Building2, label: "Colleges and offices", dist: "Easy daily commute" },
@@ -206,37 +226,36 @@ export function PropertyDetailView({
           Back to properties
         </Link>
 
-        <div className="mt-6 grid gap-9 lg:grid-cols-[1fr_420px]">
-          <div>
+        <div className="mt-6 grid min-w-0 gap-9 lg:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="order-1 min-w-0">
             <div className="relative overflow-hidden rounded-3xl bg-[color:var(--surface-muted)]">
-              <img src={gallery[0]} alt={displayName} className="h-[360px] w-full object-cover md:h-[520px]" />
-              <button type="button" className="absolute right-5 top-5 rounded-full bg-white/95 px-4 py-2 text-sm font-bold shadow-soft">
-                Preview
+              <img src={mainImage} alt={displayName} className="h-[320px] w-full object-cover sm:h-[380px] md:h-[520px]" />
+              <button type="button" onClick={openPreview} className="absolute right-4 top-4 rounded-full bg-white/95 px-4 py-2 text-sm font-bold shadow-soft">
+                Preview all
               </button>
             </div>
-            <div className="mt-3 grid grid-cols-3 gap-3">
-              {gallery.slice(0, 3).map((g, i) => (
-                <img
+            <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
+              {gallery.map((g, i) => (
+                <button
                   key={g}
-                  src={g}
-                  alt={`${displayName} thumbnail ${i + 1}`}
-                  loading="lazy"
-                  className={`h-24 w-full rounded-2xl object-cover ${i === 0 ? "ring-2 ring-[color:var(--brand)]" : ""}`}
-                />
+                  type="button"
+                  onClick={() => setSelectedImage(g)}
+                  className={`h-20 w-28 shrink-0 overflow-hidden rounded-2xl sm:h-24 sm:w-36 ${mainImage === g ? "ring-2 ring-[color:var(--brand)]" : "ring-1 ring-border"}`}
+                  aria-label={`Show ${displayName} image ${i + 1}`}
+                >
+                  <img src={g} alt={`${displayName} thumbnail ${i + 1}`} loading="lazy" className="h-full w-full object-cover" />
+                </button>
               ))}
-            </div>
-            <div className="mt-8">
-              <HighlightsSection />
             </div>
           </div>
 
-          <aside className="h-fit space-y-4 rounded-3xl border border-border bg-card p-6 shadow-lift lg:sticky lg:top-24">
+          <aside className="order-2 min-w-0 h-fit space-y-4 rounded-3xl border border-border bg-card p-5 shadow-lift sm:p-6 lg:sticky lg:top-24">
             <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--brand)]">
               <MapPin className="h-4 w-4" /> {area}, Mumbai
             </div>
-            <h1 className="font-display text-4xl font-bold leading-tight">{displayName}</h1>
+            <h1 className="font-display text-3xl font-bold leading-tight sm:text-4xl">{displayName}</h1>
             <div>
-              <p className="font-display text-4xl font-bold">
+              <p className="font-display text-3xl font-bold sm:text-4xl">
                 Rs. {displayRent.toLocaleString("en-IN")}
                 <span className="text-base font-medium text-muted-foreground"> /month onwards</span>
               </p>
@@ -246,7 +265,7 @@ export function PropertyDetailView({
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-[color:var(--surface)] p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Occupancy</p>
-                <p className="mt-1 font-semibold">{activeRoom.title}</p>
+                <p className="mt-1 font-semibold">{activeRoom?.title ?? p.occupancyType}</p>
               </div>
               <div className="rounded-2xl bg-[color:var(--surface)] p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Station</p>
@@ -254,7 +273,7 @@ export function PropertyDetailView({
               </div>
               <div className="rounded-2xl bg-[color:var(--surface)] p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Options</p>
-                <p className="mt-1 font-semibold">Single, Double, Triple</p>
+                <p className="mt-1 font-semibold">{p.sharing.join(", ")}</p>
               </div>
               <div className="rounded-2xl bg-[color:var(--surface)] p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Support</p>
@@ -271,14 +290,14 @@ export function PropertyDetailView({
                   params={{ slug: room.slug }}
                   search={locationSearch}
                   className={`flex items-center justify-between gap-3 rounded-2xl border p-3 text-sm transition hover:bg-accent ${
-                    activeRoom.label === room.label ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)] text-[color:var(--brand)]" : "border-border"
+                    activeRoom?.label === room.label ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)] text-[color:var(--brand)]" : "border-border"
                   }`}
                 >
                   <span>
                     <span className="block font-bold">{room.label}</span>
                     <span className="text-xs text-muted-foreground">{room.note}</span>
                   </span>
-                  <span className="font-bold">Rs. {(baseRent + room.extra).toLocaleString("en-IN")}</span>
+                  <span className="font-bold">Rs. {room.price.toLocaleString("en-IN")}</span>
                 </Link>
               ))}
             </div>
@@ -298,12 +317,16 @@ export function PropertyDetailView({
           </aside>
         </div>
 
+        <div className="mt-8 lg:mt-12">
+          <HighlightsSection />
+        </div>
+
         <div className="mt-14 space-y-14">
           <section>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Description</p>
             <h2 className="mt-2 font-display text-3xl font-bold">About this property</h2>
             <p className="mt-4 max-w-4xl text-muted-foreground">
-              MyRoomiee offers managed PG accommodation in {area} for students and working professionals who want a clean, secure and fully furnished place to stay. The room options are practical, air conditioned and supported by WiFi, housekeeping and responsive local assistance.
+              {displayName} offers managed PG accommodation in {area} for students and working professionals who want a clean, secure and fully furnished place to stay. The room options are practical, air conditioned and supported by WiFi, housekeeping and responsive local assistance.
             </p>
           </section>
 
@@ -335,7 +358,7 @@ export function PropertyDetailView({
             </div>
           </section>
 
-          <div className="grid gap-10 lg:grid-cols-[1fr_420px]">
+          <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_420px]">
             <PropertyPolicySection />
             <ContactManagerCard />
           </div>
@@ -351,12 +374,12 @@ export function PropertyDetailView({
                   params={{ slug: room.slug }}
                   search={locationSearch}
                   className={`rounded-2xl border p-5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift ${
-                    activeRoom.label === room.label ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)]" : "border-border bg-card"
+                    activeRoom?.label === room.label ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)]" : "border-border bg-card"
                   }`}
                 >
                   <p className="text-sm font-semibold">{room.title}</p>
                   <p className="mt-2 font-display text-2xl font-bold">
-                    Rs. {(baseRent + room.extra).toLocaleString("en-IN")}
+                    Rs. {room.price.toLocaleString("en-IN")}
                     <span className="text-sm font-medium text-muted-foreground">/mo</span>
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">Includes AC, WiFi and housekeeping. Food is not included.</p>
@@ -366,6 +389,59 @@ export function PropertyDetailView({
           </section>
         </div>
       </section>
+      {previewOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/95 p-4 backdrop-blur" role="dialog" aria-modal="true" aria-label={`${displayName} gallery preview`}>
+          <div className="mx-auto flex h-full max-w-6xl flex-col">
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-white/15 bg-black/80 p-3 text-white shadow-lift">
+              <div className="min-w-0">
+                <p className="truncate font-display text-lg font-bold text-white">{displayName} gallery</p>
+                <p className="text-sm font-semibold text-white/80">
+                  {previewIndex + 1} / {gallery.length}
+                </p>
+              </div>
+              <button type="button" onClick={() => setPreviewOpen(false)} className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-extrabold text-slate-950 shadow-soft hover:bg-white/90">
+                Close
+              </button>
+            </div>
+            <div className="relative flex min-h-0 flex-1 items-center justify-center">
+              {gallery.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => showPreviewImage(previewIndex - 1)}
+                  className="absolute left-0 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/25 sm:left-3"
+                  aria-label="Show previous image"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+              )}
+              <img src={activePreviewImage} alt={`${displayName} gallery image ${previewIndex + 1}`} className="max-h-[72vh] w-full max-w-5xl rounded-2xl object-contain shadow-lift" />
+              {gallery.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => showPreviewImage(previewIndex + 1)}
+                  className="absolute right-0 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/25 sm:right-3"
+                  aria-label="Show next image"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              )}
+            </div>
+            <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
+              {gallery.map((image, index) => (
+                <button
+                  key={image}
+                  type="button"
+                  onClick={() => showPreviewImage(index)}
+                  className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-white/10 ${previewIndex === index ? "ring-2 ring-white" : "ring-1 ring-white/20"}`}
+                  aria-label={`Preview ${displayName} image ${index + 1}`}
+                >
+                  <img src={image} alt={`${displayName} thumbnail ${index + 1}`} className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </SiteLayout>
   );
 }
@@ -411,9 +487,9 @@ function FeatureAmenityList() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
+      <div className="no-scrollbar mt-6 flex gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:pb-0">
         {amenityGroups.map((group) => (
-          <div key={group.title} className="rounded-2xl border border-border bg-background p-5">
+          <div key={group.title} className="w-[82vw] shrink-0 rounded-2xl border border-border bg-background p-5 shadow-soft sm:w-[360px] md:w-auto md:shrink">
             <h3 className="text-sm font-extrabold uppercase tracking-wide text-muted-foreground">{group.title}</h3>
             <ul className="mt-4 space-y-3">
               {group.items.map((item) => (
@@ -428,25 +504,6 @@ function FeatureAmenityList() {
           </div>
         ))}
       </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        {[
-          { icon: Snowflake, label: "Air Conditioned" },
-          { icon: Wifi, label: "WiFi Included" },
-          { icon: Sparkles, label: "Daily Housekeeping" },
-          { icon: Camera, label: "CCTV Security" },
-          { icon: Droplet, label: "RO Drinking Water" },
-          { icon: Home, label: "Fully Furnished" },
-        ].map((item) => (
-          <div key={item.label} className="flex items-center gap-3 rounded-2xl bg-[color:var(--surface)] p-4 text-sm font-semibold">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-[color:var(--brand)]">
-              <item.icon className="h-5 w-5" />
-            </span>
-            {item.label}
-          </div>
-        ))}
-      </div>
-
     </section>
   );
 }
