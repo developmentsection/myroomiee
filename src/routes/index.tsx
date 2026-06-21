@@ -98,40 +98,41 @@ function Hero() {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-x-0 top-0 -z-10 h-[620px] bg-gradient-to-b from-[color:var(--brand-soft)] to-transparent" />
-      <div className="mx-auto max-w-7xl px-5 pt-16 pb-14 md:pt-20">
-        <div className="grid items-center gap-12 md:grid-cols-2">
-          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-medium text-muted-foreground shadow-soft backdrop-blur">
+      <div className="mx-auto w-full max-w-7xl overflow-hidden px-5 pt-16 pb-14 md:overflow-visible md:pt-20">
+        <div className="grid min-w-0 items-center gap-12 md:grid-cols-2">
+          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="min-w-0">
+            <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-[10px] font-medium text-muted-foreground shadow-soft backdrop-blur sm:text-xs">
               <ShieldCheck className="h-3.5 w-3.5 text-[color:var(--brand)]" /> Trusted by 2,500+ residents across Mumbai
             </span>
-            <h1 className="mt-4 font-display text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">
-              Premium PG & <span className="text-gradient-brand">Managed PG Rooms</span> in Mumbai
+            <h1 className="mt-4 max-w-[calc(100vw-2.5rem)] break-words font-display text-[1.8rem] font-bold leading-[1.1] tracking-tight sm:text-4xl md:max-w-none md:text-6xl">
+              <span className="md:hidden">Premium PG Rooms in Mumbai</span>
+              <span className="hidden md:inline">Premium PG & <span className="text-gradient-brand">Managed PG Rooms</span> in Mumbai</span>
             </h1>
             <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
               Fully furnished AC rooms with WiFi, housekeeping, security and zero brokerage. Book a free visit today.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/contact" className="inline-flex items-center gap-2 rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:shadow-lift">
+            <div className="mt-7 grid w-full max-w-[calc(100vw-2.5rem)] gap-3 sm:flex sm:max-w-none sm:flex-wrap">
+              <Link to="/contact" className="inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:shadow-lift sm:w-auto">
                 Book Visit <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/properties" className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent">
+              <Link to="/properties" className="inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent sm:w-auto">
                 Explore Properties
               </Link>
-              <a href="https://wa.me/918879779777" className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent">
+              <a href="https://wa.me/918879779777" className="inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent sm:w-auto">
                 <MessageCircle className="h-4 w-4 text-[#25D366]" /> WhatsApp
               </a>
-              <a href="tel:+918879779777" className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent">
+              <a href="tel:+918879779777" className="inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-accent sm:w-auto">
                 <Phone className="h-4 w-4" /> Call Now
               </a>
             </div>
-            <dl className="mt-10 grid max-w-md grid-cols-3 gap-6">
+            <dl className="mt-10 grid max-w-md grid-cols-3 gap-3 sm:gap-6">
               {[
                 { k: "2,500+", v: "Happy Residents" },
                 { k: "40+", v: "Properties" },
                 { k: "4.8★", v: "Google Rating" },
               ].map((s) => (
-                <div key={s.k}>
-                  <dt className="font-display text-2xl font-bold">{s.k}</dt>
+                <div key={s.k} className="min-w-0">
+                  <dt className="font-display text-xl font-bold sm:text-2xl">{s.k}</dt>
                   <dd className="text-xs text-muted-foreground">{s.v}</dd>
                 </div>
               ))}
@@ -160,7 +161,7 @@ function HeroCarousel() {
           {loop.map((item, i) => (
             <div
               key={i}
-              className="group relative h-[420px] w-[320px] shrink-0 overflow-hidden rounded-2xl shadow-soft md:h-[500px] md:w-[380px]"
+              className="group relative h-[360px] w-[min(78vw,320px)] shrink-0 overflow-hidden rounded-2xl shadow-soft md:h-[500px] md:w-[380px]"
             >
               <img
                 src={item.img}

@@ -222,6 +222,14 @@
   .pause-on-hover:hover .hero-carousel {
     animation-play-state: paused;
   }
+  @media (max-width: 640px) {
+    html,
+    body,
+    #root {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+  }
   .cms-btn {
     display: inline-flex;
     min-height: 2.5rem;
