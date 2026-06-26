@@ -635,11 +635,19 @@ function LocationsGrid() {
           </Link>
         ))}
       </div>
-      <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+      <div className="mt-10 flex flex-wrap justify-center gap-3">
         {subAreas.map((l) => (
-          <Link key={l.href} to={l.href} className="group flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-sm font-medium shadow-soft transition hover:-translate-y-0.5 hover:border-[color:var(--brand)]/40 hover:shadow-lift">
-            <span>{l.name}</span>
-            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-[color:var(--brand)]" />
+          <Link
+            key={l.href}
+            to="/$slug"
+            params={{ slug: l.href.replace(/^\//, "") }}
+            className="group inline-flex min-h-11 w-full max-w-full items-center justify-between gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-semibold shadow-soft transition hover:-translate-y-0.5 hover:border-[color:var(--brand)]/40 hover:bg-[color:var(--brand-soft)] hover:text-[color:var(--brand)] hover:shadow-lift sm:w-auto sm:justify-start"
+          >
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-[color:var(--brand)]" />
+              <span className="min-w-0 break-words">{l.name}</span>
+            </span>
+            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-[color:var(--brand)]" />
           </Link>
         ))}
       </div>
