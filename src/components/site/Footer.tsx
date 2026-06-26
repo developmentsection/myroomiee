@@ -52,6 +52,17 @@ export function Footer() {
       <div className="border-t border-border/60">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-5 text-xs text-muted-foreground md:flex-row">
           <p>© {new Date().getFullYear()} MyRoomiee. All rights reserved.</p>
+          <p>
+            Designed and Developed By{" "}
+            <a
+              href="https://apfpuniversal.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-[color:var(--brand)] transition hover:text-foreground"
+            >
+              APFP Universal
+            </a>
+          </p>
           <p>Managed PG • PG accommodation • Furnished Accommodation • Mumbai</p>
         </div>
       </div>
