@@ -34,7 +34,10 @@ const landmarkIcon = (t: PgLandmark["type"]) => {
 };
 
 const bedroomGallery = (data: PgLocationData) => safePreviewGallery(data.gallery).slice(0, 3);
-const bedroomImage = (data: PgLocationData, index = 0) => bedroomGallery(data)[index]?.src ?? "";
+const bedroomImage = (data: PgLocationData, index = 0) => {
+  const gallery = bedroomGallery(data);
+  return gallery[index % Math.max(gallery.length, 1)]?.src ?? "/room-images/shivdham-building-1-boys/image-09.jpeg";
+};
 
 export function PgLocationPage({ data }: { data: PgLocationData }) {
   return (
@@ -244,7 +247,15 @@ function PgRooms({ data }: { data: PgLocationData }) {
                   className="group flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-soft outline-none transition hover:-translate-y-1 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2"
                 >
               <div className="relative aspect-[4/3] overflow-hidden">
-                <img src={bedroomImage(data, i % 3)} alt={`${option?.label ?? r.type} PG in ${data.area}`} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <img
+                  src={bedroomImage(data, i)}
+                  alt={`${option?.label ?? r.type} PG in ${data.area}`}
+                  loading="lazy"
+                  onError={(event) => {
+                    event.currentTarget.src = "/room-images/shivdham-building-1-boys/image-09.jpeg";
+                  }}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
                 <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur">
                   <ShieldCheck className="h-3.5 w-3.5 text-[color:var(--brand)]" /> Verified
                 </span>

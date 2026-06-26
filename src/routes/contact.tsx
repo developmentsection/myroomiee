@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { MapPin, Phone, Mail, MessageCircle, Clock } from "lucide-react";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { openWhatsAppEnquiry } from "@/lib/enquiry";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -16,6 +18,22 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
+  const [status, setStatus] = useState("");
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    openWhatsAppEnquiry({
+      Source: "Contact page",
+      Name: String(form.get("name") ?? ""),
+      Phone: String(form.get("phone") ?? ""),
+      Email: String(form.get("email") ?? ""),
+      Location: String(form.get("location") ?? ""),
+      Message: String(form.get("message") ?? ""),
+    });
+    setStatus("Opening WhatsApp with your enquiry details.");
+  };
+
   return (
     <SiteLayout>
       <section className="border-b border-border bg-[color:var(--surface)]">
@@ -27,19 +45,20 @@ function ContactPage() {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[1.1fr_1fr]">
-        <form className="rounded-3xl border border-border bg-card p-7 shadow-soft">
+        <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-card p-7 shadow-soft">
           <h2 className="font-display text-2xl font-bold">Send us a message</h2>
           <div className="mt-6 grid gap-3 md:grid-cols-2">
-            <Input label="Full name" placeholder="Your name" />
-            <Input label="Phone" placeholder="+91 8879779777" />
-            <Input label="Email" placeholder="you@example.com" full />
-            <Input label="Preferred location" placeholder="e.g. Andheri West, Powai" full />
+            <Input label="Full name" name="name" placeholder="Your name" required />
+            <Input label="Phone" name="phone" placeholder="+91 8879779777" required />
+            <Input label="Email" name="email" type="email" placeholder="you@example.com" full />
+            <Input label="Preferred location" name="location" placeholder="e.g. Andheri West, Powai" full required />
             <div className="md:col-span-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Message</label>
-              <textarea rows={4} placeholder="Tell us your budget, move-in date and preferences" className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
+              <textarea name="message" rows={4} placeholder="Tell us your budget, move-in date and preferences" className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
             </div>
           </div>
-          <button type="button" className="mt-5 w-full rounded-full gradient-brand px-5 py-3.5 text-sm font-semibold text-white shadow-soft">Request callback</button>
+          <button type="submit" className="mt-5 w-full rounded-full gradient-brand px-5 py-3.5 text-sm font-semibold text-white shadow-soft">Request callback</button>
+          {status && <p className="mt-3 rounded-xl bg-[color:var(--brand-soft)] px-3 py-2 text-xs font-semibold text-[color:var(--brand)]">{status}</p>}
           <p className="mt-3 text-xs text-muted-foreground">By submitting you agree to our Privacy Policy and Terms.</p>
         </form>
 
@@ -58,16 +77,29 @@ function ContactPage() {
   );
 }
 
-function Input({ label, placeholder, full }: { label: string; placeholder: string; full?: boolean }) {
+function Input({
+  label,
+  name,
+  placeholder,
+  full,
+  required,
+  type = "text",
+}: {
+  label: string;
+  name: string;
+  placeholder: string;
+  full?: boolean;
+  required?: boolean;
+  type?: string;
+}) {
   return (
     <div className={full ? "md:col-span-2" : ""}>
       <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</label>
-      <input placeholder={placeholder} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
+      <input name={name} type={type} required={required} placeholder={placeholder} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
     </div>
   );
 }
 
-import type { ReactNode } from "react";
 function Info({ icon: Icon, title, lines }: { icon: typeof MapPin; title: string; lines: ReactNode[] }) {
   return (
     <div className="flex gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">

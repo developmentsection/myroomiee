@@ -1,9 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { BrandLogo } from "@/components/site/BrandLogo";
 import { properties, propertyRoomOptions, resolvePropertyBySlug, roomOptionBySlug } from "@/lib/properties";
 import { resolveLocationPage, safePreviewImageList } from "@/lib/pg-locations";
+import { openWhatsAppEnquiry } from "@/lib/enquiry";
 import {
   Armchair,
   BedDouble,
@@ -347,7 +348,7 @@ export function PropertyDetailView({
 
           <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_420px]">
             <PropertyPolicySection />
-            <ContactManagerCard />
+            <ContactManagerCard propertyName={displayName} area={area} room={activeRoom?.label} />
           </div>
 
           <section>
@@ -526,7 +527,25 @@ function PropertyPolicySection() {
   );
 }
 
-function ContactManagerCard() {
+function ContactManagerCard({ propertyName, area, room }: { propertyName: string; area: string; room?: string }) {
+  const [status, setStatus] = useState("");
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    openWhatsAppEnquiry({
+      Source: "Property detail page",
+      Property: propertyName,
+      Area: area,
+      Room: room,
+      Name: String(form.get("name") ?? ""),
+      Phone: String(form.get("phone") ?? ""),
+      "Visit Date": String(form.get("visitDate") ?? ""),
+      Message: String(form.get("message") ?? ""),
+    });
+    setStatus("Opening WhatsApp with your inquiry details.");
+  };
+
   return (
     <section>
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Contact</p>
@@ -540,12 +559,13 @@ function ContactManagerCard() {
             <p className="font-bold">+91 8879779777</p>
           </div>
         </div>
-        <form className="mt-5 grid gap-3">
-          <input className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Your name" />
-          <input className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Phone number" />
-          <input className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Preferred visit date" />
-          <textarea rows={3} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Message" />
-          <button type="button" className="rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white shadow-soft">Send Inquiry</button>
+        <form onSubmit={handleSubmit} className="mt-5 grid gap-3">
+          <input name="name" required className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Your name" />
+          <input name="phone" required className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Phone number" />
+          <input name="visitDate" className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Preferred visit date" />
+          <textarea name="message" rows={3} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm" placeholder="Message" />
+          <button type="submit" className="rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white shadow-soft">Send Inquiry</button>
+          {status && <p className="rounded-xl bg-[color:var(--brand-soft)] px-3 py-2 text-xs font-semibold text-[color:var(--brand)]">{status}</p>}
         </form>
         <div className="mt-3 grid grid-cols-2 gap-3">
           <a href="https://wa.me/918879779777" className="rounded-full border border-border px-5 py-3 text-center text-sm font-semibold hover:bg-accent">
