@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { locationPages, mainAreaSlugs } from "@/lib/pg-locations";
+import { normalizeRoomCopy } from "@/lib/room-labels";
 import { ArrowRight, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/locations")({
@@ -36,7 +37,8 @@ function LocationsPage() {
           {mainPages.map((main) => (
             <Link
               key={main.slug}
-              to={`/${main.slug}`}
+              to="/$slug"
+              params={{ slug: main.slug }}
               className="group overflow-hidden rounded-3xl border border-border bg-card shadow-soft transition hover:-translate-y-1 hover:shadow-lift"
             >
               <div className="aspect-[16/10] overflow-hidden bg-[color:var(--surface)]">
@@ -47,7 +49,7 @@ function LocationsPage() {
                   <MapPin className="h-3.5 w-3.5" /> Main Area
                 </p>
                 <h2 className="mt-2 font-display text-xl font-bold">{main.area}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{main.subheadline}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{normalizeRoomCopy(main.subheadline)}</p>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)]">
                   View PGs <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                 </span>
@@ -65,7 +67,7 @@ function LocationsPage() {
                 <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--brand)]">Subareas</p>
                 <h2 className="font-display text-2xl font-bold">PG near {main.area}</h2>
               </div>
-              <Link to={`/${main.slug}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)]">
+              <Link to="/$slug" params={{ slug: main.slug }} className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)]">
                 Open {main.area} <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -73,12 +75,13 @@ function LocationsPage() {
               {(main.serviceAreas ?? []).map((area) => (
                 <Link
                   key={area.href}
-                  to={area.href}
+                  to="/$slug"
+                  params={{ slug: area.href.replace(/^\//, "") }}
                   className="group flex items-start justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-soft transition hover:-translate-y-0.5 hover:border-[color:var(--brand)]/40 hover:shadow-lift"
                 >
                   <div>
                     <p className="text-sm font-semibold">{area.name}</p>
-                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{area.description}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{normalizeRoomCopy(area.description)}</p>
                   </div>
                   <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-[color:var(--brand)]" />
                 </Link>

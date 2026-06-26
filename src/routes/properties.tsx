@@ -2,14 +2,14 @@ import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-rout
 import { useMemo, useState } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PropertyCard } from "@/components/site/PropertyCard";
-import { properties } from "@/lib/properties";
+import { properties, propertyRoomOptions } from "@/lib/properties";
 import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/properties")({
   head: () => ({
     meta: [
       { title: "PG & PG properties in Mumbai — MyRoomiee" },
-      { name: "description", content: "Browse verified fully furnished PG, managed PG accommodation in Mumbai. Filter by location, budget and sharing." },
+      { name: "description", content: "Browse verified fully furnished PG, managed PG accommodation in Mumbai. Filter by location, budget and room option." },
       { property: "og:title", content: "Properties — MyRoomiee" },
       { property: "og:description", content: "Browse verified PG and PG properties across Mumbai." },
     ],
@@ -18,20 +18,15 @@ export const Route = createFileRoute("/properties")({
   component: PropertiesPage,
 });
 
-const sharingOptions = ["Any", "Single", "Double", "Triple"];
+const roomOptions = ["Any", "Master Bedroom", "Master Bedroom 1", "Master Bedroom 2", "Common Bedroom", "Hall"];
 const genderOptions = ["Any", "Boys", "Girls", "Family"] as const;
-const detailSlugBySharing: Record<string, string> = {
-  Any: "double-sharing-room",
-  Single: "single-ac-room",
-  Double: "double-sharing-room",
-  Triple: "triple-sharing-room",
-};
+const roomSlugByLabel = (label: string) => label.toLowerCase().replace(/\s+/g, "-");
 
 function PropertiesPage() {
   const locationState = useLocation();
   const [q, setQ] = useState("");
   const [budget, setBudget] = useState(20000);
-  const [sharing, setSharing] = useState("Any");
+  const [room, setRoom] = useState("Any");
   const [gender, setGender] = useState<(typeof genderOptions)[number]>("Any");
   const [ac, setAc] = useState(false);
 
@@ -39,13 +34,13 @@ function PropertiesPage() {
     properties.filter((p) => {
       if (q && !`${p.name} ${p.location}`.toLowerCase().includes(q.toLowerCase())) return false;
       if (p.priceFrom > budget) return false;
-      if (sharing !== "Any" && !p.sharing.includes(sharing)) return false;
+      if (room !== "Any" && !propertyRoomOptions(p).some((option) => option.label === room)) return false;
       if (ac && !p.ac) return false;
       if (gender === "Boys" && !(p.gender === "boys" || p.gender === "any")) return false;
       if (gender === "Girls" && !(p.gender === "girls" || p.gender === "any")) return false;
       if (gender === "Family" && p.gender !== "any") return false;
       return true;
-    }), [q, budget, sharing, gender, ac]);
+    }), [q, budget, room, gender, ac]);
 
   if (locationState.pathname !== "/properties") {
     return <Outlet />;
@@ -78,10 +73,10 @@ function PropertiesPage() {
               <input type="range" min={5000} max={25000} step={500} value={budget} onChange={(e) => setBudget(+e.target.value)} className="mt-3 w-full accent-[color:var(--brand)]" />
             </div>
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sharing</label>
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Room Type</label>
               <div className="mt-2 flex flex-wrap gap-2">
-                {sharingOptions.map((s) => (
-                  <button key={s} onClick={() => setSharing(s)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${sharing === s ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)] text-[color:var(--brand)]" : "border-border bg-background hover:bg-accent"}`}>{s}</button>
+                {roomOptions.map((s) => (
+                  <button key={s} onClick={() => setRoom(s)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${room === s ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)] text-[color:var(--brand)]" : "border-border bg-background hover:bg-accent"}`}>{s}</button>
                 ))}
               </div>
             </div>
@@ -105,7 +100,7 @@ function PropertiesPage() {
               <div className="rounded-3xl border border-dashed border-border p-12 text-center text-muted-foreground">No properties match. Try widening your filters.</div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
-                {filtered.map((p) => <PropertyCard key={p.slug} p={p} detailSlug={detailSlugBySharing[sharing]} />)}
+                {filtered.map((p) => <PropertyCard key={p.slug} p={p} detailSlug={room === "Any" ? undefined : roomSlugByLabel(room)} />)}
               </div>
             )}
             <div className="mt-10 rounded-3xl gradient-brand p-8 text-white">

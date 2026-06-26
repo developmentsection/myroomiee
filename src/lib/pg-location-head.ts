@@ -1,12 +1,13 @@
 import { resolveLocationPage, type LocationPageData, type PgLocationData } from "./pg-locations";
 import { cmsLocationHead } from "./cms/head";
+import { normalizeRoomCopy } from "./room-labels";
 
 const BASE = "https://www.myroomiee.com";
 
 export function buildLocationHead(d: PgLocationData | LocationPageData) {
   const url = `${BASE}/${d.slug}`;
-  const title = `${d.headline} | MyRoomiee - ${d.area} PG from Rs. ${d.startingRent.toLocaleString("en-IN")}`;
-  const description = `${d.subheadline} Boys and girls PG in ${d.area}, ${d.city}. ${d.propertyCount}+ verified properties, ${d.googleRating} star rated by ${d.googleReviews}+ residents.`;
+  const title = normalizeRoomCopy(`${d.headline} | MyRoomiee - ${d.area} PG from Rs. ${d.startingRent.toLocaleString("en-IN")}`);
+  const description = normalizeRoomCopy(`${d.subheadline} Boys and girls PG in ${d.area}, ${d.city}. ${d.propertyCount}+ verified properties, ${d.googleRating} star rated by ${d.googleReviews}+ residents.`);
 
   return {
     meta: [
@@ -57,8 +58,8 @@ export function buildLocationHead(d: PgLocationData | LocationPageData) {
           "@type": "FAQPage",
           mainEntity: d.faqs.map((f) => ({
             "@type": "Question",
-            name: f.q,
-            acceptedAnswer: { "@type": "Answer", text: f.a },
+            name: normalizeRoomCopy(f.q),
+            acceptedAnswer: { "@type": "Answer", text: normalizeRoomCopy(f.a) },
           })),
         }),
       },

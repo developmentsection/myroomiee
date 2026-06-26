@@ -10,7 +10,8 @@ import {
 import { SiteLayout } from "./SiteLayout";
 import type { PgLocationData, PgLandmark, PgRoomCard } from "@/lib/pg-locations";
 import { pgContact, safePreviewGallery } from "@/lib/pg-locations";
-import { properties, resolvePropertyBySlug, type Property, type SharingType } from "@/lib/properties";
+import { properties, resolvePropertyBySlug, roomOptionForLegacySharing, type Property } from "@/lib/properties";
+import { normalizeRoomCopy } from "@/lib/room-labels";
 
 const amenitiesGrid = [
   { icon: Snowflake, name: "AC" }, { icon: Wifi, name: "WiFi" }, { icon: Camera, name: "CCTV" },
@@ -72,7 +73,7 @@ function Hero({ data }: { data: PgLocationData }) {
             <h1 className="mt-4 break-words font-display text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
               {data.headline.split(" in ")[0]} in <span className="text-gradient-brand">{data.area}</span>
             </h1>
-            <p className="mt-5 max-w-xl break-words text-base text-muted-foreground md:text-lg">{data.subheadline}</p>
+            <p className="mt-5 max-w-xl break-words text-base text-muted-foreground md:text-lg">{normalizeRoomCopy(data.subheadline)}</p>
 
             <div className="mt-7 grid w-full gap-3 sm:flex sm:flex-wrap">
               <Link to="/contact" className="inline-flex min-w-0 items-center justify-center gap-2 rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:shadow-lift">
@@ -169,32 +170,26 @@ const propertySlugForSharing = (sharing: string) => {
   return "double-sharing-room";
 };
 
-const sharingTypeForRoom = (sharing: string): SharingType => {
-  const normalized = sharing.toLowerCase();
-  if (normalized.includes("single")) return "Single";
-  if (normalized.includes("triple")) return "Triple";
-  return "Double";
-};
-
 const propertyMatchesGender = (property: Property, gender: "boys" | "girls") =>
   property.gender === "any" || property.gender === gender;
 
 const propertyForRoom = (room: PgRoomCard, gender: "boys" | "girls") => {
-  const sharing = sharingTypeForRoom(room.sharing);
   const exactProperty = room.propertySlug ? resolvePropertyBySlug(room.propertySlug) : undefined;
-  if (exactProperty?.sharing.includes(sharing) && propertyMatchesGender(exactProperty, gender)) return exactProperty;
+  if (exactProperty && propertyMatchesGender(exactProperty, gender)) return exactProperty;
 
   return (
-    properties.find((property) => propertyMatchesGender(property, gender) && property.sharing.includes(sharing)) ??
-    properties.find((property) => property.sharing.includes(sharing)) ??
+    properties.find((property) => propertyMatchesGender(property, gender)) ??
     properties[0]
   );
 };
 
-const roomDisplayPrice = (room: PgRoomCard, gender: "boys" | "girls") => {
+const roomDisplayOption = (room: PgRoomCard, gender: "boys" | "girls") => {
   const property = propertyForRoom(room, gender);
-  const sharing = sharingTypeForRoom(room.sharing);
-  return property?.prices[sharing] ?? room.priceFrom ?? property?.priceFrom ?? 0;
+  return roomOptionForLegacySharing(property, room.sharing);
+};
+
+const roomDisplayPrice = (room: PgRoomCard, gender: "boys" | "girls") => {
+  return roomDisplayOption(room, gender)?.price ?? room.priceFrom ?? 0;
 };
 
 const locationStartingRent = (data: PgLocationData) => {
@@ -210,7 +205,7 @@ function PgRooms({ data }: { data: PgLocationData }) {
   const list = useMemo(() => (gender === "boys" ? data.boys : data.girls), [gender, data]);
   return (
     <section className="mx-auto max-w-7xl px-5 py-20">
-      <SectionHead eyebrow="Featured Properties" title={`Premium PGs in ${data.area}`} sub="Choose your room type — single, double or triple sharing. Every room is fully furnished and move-in ready." />
+      <SectionHead eyebrow="Featured Properties" title={`Premium PGs in ${data.area}`} sub="Choose your room type: Master Bedroom, Common Bedroom or Hall. Every room is fully furnished and move-in ready." />
 
       <div className="mt-8 flex justify-center">
         <div className="relative inline-flex rounded-full border border-border bg-white/70 p-1 shadow-soft backdrop-blur">
@@ -234,7 +229,8 @@ function PgRooms({ data }: { data: PgLocationData }) {
         >
           {list.map((r, i) => {
             const property = propertyForRoom(r, gender);
-            const price = roomDisplayPrice(r, gender);
+            const option = roomDisplayOption(r, gender);
+            const price = option?.price ?? roomDisplayPrice(r, gender);
             return (
               <motion.div
                 key={r.type + i}
@@ -243,12 +239,12 @@ function PgRooms({ data }: { data: PgLocationData }) {
               >
                 <Link
                   to="/properties/$slug"
-                  params={{ slug: propertySlugForSharing(r.sharing) }}
+                  params={{ slug: option?.slug ?? propertySlugForSharing(r.sharing) }}
                   search={{ location: data.slug, property: property.slug }}
                   className="group flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-soft outline-none transition hover:-translate-y-1 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2"
                 >
               <div className="relative aspect-[4/3] overflow-hidden">
-                <img src={bedroomImage(data, i % 3)} alt={`${r.type} PG in ${data.area}`} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <img src={bedroomImage(data, i % 3)} alt={`${option?.label ?? r.type} PG in ${data.area}`} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur">
                   <ShieldCheck className="h-3.5 w-3.5 text-[color:var(--brand)]" /> Verified
                 </span>
@@ -258,7 +254,7 @@ function PgRooms({ data }: { data: PgLocationData }) {
               </div>
               <div className="flex flex-1 flex-col gap-3 p-5">
                 <div className="min-w-0">
-                  <h3 className="font-display text-lg font-semibold leading-tight">{r.type}</h3>
+                  <h3 className="font-display text-lg font-semibold leading-tight">{option?.label ?? r.type}</h3>
                   <p className="mt-1 inline-flex max-w-full items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5" /> {data.area}, {data.city}
                   </p>
@@ -274,7 +270,7 @@ function PgRooms({ data }: { data: PgLocationData }) {
                     <p className="font-display text-xl font-bold">₹{price.toLocaleString("en-IN")}<span className="text-sm font-medium text-muted-foreground">/mo</span></p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-xs font-semibold text-emerald-600">{r.sharing} option</p>
+                    <p className="text-xs font-semibold text-emerald-600">Room option</p>
                     <span className="mt-1.5 inline-flex items-center gap-1 rounded-full gradient-brand px-3 py-1.5 text-xs font-semibold text-white shadow-soft">
                       View Details <ArrowRight className="h-3 w-3" />
                     </span>
@@ -308,7 +304,7 @@ function ServiceAreas({ data }: { data: PgLocationData }) {
             <div className="flex min-w-0 items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="break-words font-display text-base font-semibold">{area.name}</p>
-                <p className="mt-1 break-words text-sm text-muted-foreground">{area.description}</p>
+                <p className="mt-1 break-words text-sm text-muted-foreground">{normalizeRoomCopy(area.description)}</p>
               </div>
               {area.badge && <span className="shrink-0 rounded-full bg-[color:var(--brand-soft)] px-2 py-1 text-[10px] font-bold text-[color:var(--brand)]">{area.badge}</span>}
             </div>
@@ -379,12 +375,12 @@ function WhyStay({ data }: { data: PgLocationData }) {
     <section className="bg-[color:var(--surface)] py-20">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 md:grid-cols-2">
         <div>
-          <SectionHead align="left" eyebrow="Location Advantage" title={`Why stay in ${data.area}?`} sub={data.intro} />
+          <SectionHead align="left" eyebrow="Location Advantage" title={`Why stay in ${data.area}?`} sub={normalizeRoomCopy(data.intro)} />
           <ul className="mt-8 space-y-3">
             {data.whyStay.map((w) => (
               <li key={w} className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand)]" />
-                <span className="text-sm">{w}</span>
+                <span className="text-sm">{normalizeRoomCopy(w)}</span>
               </li>
             ))}
           </ul>
@@ -484,7 +480,7 @@ function Reviews({ data }: { data: PgLocationData }) {
             <div className="flex gap-0.5 text-yellow-400">
               {Array.from({ length: t.rating }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
             </div>
-            <p className="mt-4 text-sm leading-relaxed">"{t.text}"</p>
+            <p className="mt-4 text-sm leading-relaxed">"{normalizeRoomCopy(t.text)}"</p>
             <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
               <span className="grid h-10 w-10 place-items-center rounded-full gradient-brand font-semibold text-white">{t.name[0]}</span>
               <div>
@@ -508,8 +504,8 @@ function SeoContent({ data }: { data: PgLocationData }) {
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {data.seoBlocks.map((b) => (
             <article key={b.title} className="rounded-3xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lift">
-              <h3 className="font-display text-lg font-semibold">{b.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{b.body}</p>
+              <h3 className="font-display text-lg font-semibold">{normalizeRoomCopy(b.title)}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{normalizeRoomCopy(b.body)}</p>
             </article>
           ))}
         </div>
@@ -528,13 +524,13 @@ function Faqs({ data }: { data: PgLocationData }) {
         {data.faqs.map((f, i) => (
           <button key={f.q} onClick={() => setOpen(open === i ? null : i)} className="w-full px-6 py-5 text-left">
             <div className="flex items-center justify-between gap-4">
-              <span className="font-display text-base font-semibold">{f.q}</span>
+              <span className="font-display text-base font-semibold">{normalizeRoomCopy(f.q)}</span>
               <span className={`grid h-7 w-7 place-items-center rounded-full bg-[color:var(--brand-soft)] text-[color:var(--brand)] transition ${open === i ? "rotate-45" : ""}`}>+</span>
             </div>
             <AnimatePresence>
               {open === i && (
                 <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-3 text-sm text-muted-foreground">
-                  {f.a}
+                  {normalizeRoomCopy(f.a)}
                 </motion.p>
               )}
             </AnimatePresence>

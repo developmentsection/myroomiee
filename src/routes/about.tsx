@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ShieldCheck, Users, Building2, Heart, Home, Sparkles } from "lucide-react";
+import { roomOptionNames } from "@/lib/room-labels";
 
 const lounge = "/room-images/vaibhav-kutir-heights/image-14.jpeg";
 
@@ -58,7 +59,7 @@ function AboutPage() {
               MyRoomiee offers a safe, peaceful and fully facilitated environment with CCTV surveillance, verified properties and professional housekeeping. Rooms are spacious, well ventilated and furnished with beds, wardrobes, study tables, WiFi and air conditioning where applicable.
             </p>
             <p>
-              Residents can choose single, double or triple sharing as per budget and requirement. Our team helps visitors compare room options, understand rent and deposit clearly, schedule a property visit and confirm the stay only after the details are verified with the property manager.
+              Residents can choose Master Bedroom, Common Bedroom or Hall as per budget and requirement. Our team helps visitors compare room options, understand rent and deposit clearly, schedule a property visit and confirm the stay only after the details are verified with the property manager.
             </p>
             <p>
               We do not include food in any package. This keeps pricing transparent and allows residents to choose food arrangements according to their routine, taste and budget.
@@ -97,7 +98,7 @@ function AboutPage() {
               Mumbai is fast, expensive and competitive. A good PG should reduce stress, not add to it. MyRoomiee focuses on practical resident needs: safe entry, clean rooms, reliable WiFi, air conditioned options, housekeeping, transparent rent, refundable deposit clarity and quick support from the property manager.
             </p>
             <p>
-              Our managed PG rooms are suitable for students preparing for exams, working professionals with long office hours, people relocating to Mumbai and residents who want flexible sharing options. Whether the requirement is single, double or triple sharing, our team helps shortlist the best-fit rooms before a visit.
+              Our managed PG rooms are suitable for students preparing for exams, working professionals with long office hours, people relocating to Mumbai and residents who want flexible room options. Whether the requirement is Master Bedroom, Common Bedroom or Hall, our team helps shortlist the best-fit rooms before a visit.
             </p>
             <p>
               Every inquiry is handled with a clear process: understand the requirement, show matching rooms, schedule a visit, explain rules and deposit, verify documents and then confirm the move-in. There is no forced online booking on the website.
@@ -110,10 +111,10 @@ function AboutPage() {
         <h2 className="font-display text-3xl font-bold">A resident-first PG brand built around clarity</h2>
         <div className="mt-6 grid gap-6 text-muted-foreground md:grid-cols-2">
           <p>
-            Under the guidance of Mrs. Sweta Rita, MyRoomiee focuses on the everyday details that matter in shared accommodation: verified rooms, clear rent communication, safety checks, clean common areas, WiFi access, air conditioned options and a practical move-in process. Every inquiry is handled by understanding the resident's location, budget, sharing preference and move-in timeline.
+            Under the guidance of Mrs. Sweta Rita, MyRoomiee focuses on the everyday details that matter in shared accommodation: verified rooms, clear rent communication, safety checks, clean common areas, WiFi access, air conditioned options and a practical move-in process. Every inquiry is handled by understanding the resident's location, budget, room preference and move-in timeline.
           </p>
           <p>
-            MyRoomiee serves residents searching for PG in Malad, PG in Goregaon, PG in Jogeshwari and nearby Mumbai subareas. Our team helps visitors compare single, double and triple sharing rooms before they make a decision. We do not provide online room booking on the website; final confirmation happens after manager discussion, visit, document verification and payment confirmation.
+            MyRoomiee serves residents searching for PG in Malad, PG in Goregaon, PG in Jogeshwari and nearby Mumbai subareas. Our team helps visitors compare {roomOptionNames} rooms before they make a decision. We do not provide online room booking on the website; final confirmation happens after manager discussion, visit, document verification and payment confirmation.
           </p>
           <p>
             We believe transparent accommodation is better than overpromising. Food is not included in any MyRoomiee package, so residents can choose food arrangements based on their own routine, taste, health needs and budget. This helps keep room pricing clear and avoids confusion about what is included in rent.
@@ -126,7 +127,7 @@ function AboutPage() {
 
       <section className="mx-auto max-w-3xl px-5 py-20 text-center">
         <h2 className="font-display text-3xl font-bold">Want to see a property?</h2>
-        <p className="mt-3 text-muted-foreground">Visits are free, and our team will take you through the best room options for your budget, location and sharing preference.</p>
+        <p className="mt-3 text-muted-foreground">Visits are free, and our team will take you through the best room options for your budget, location and room preference.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link to="/contact" className="rounded-full gradient-brand px-5 py-3 text-sm font-semibold text-white">Schedule Visit</Link>
           <Link to="/properties" className="rounded-full border border-border px-5 py-3 text-sm font-semibold hover:bg-accent">Explore Properties</Link>

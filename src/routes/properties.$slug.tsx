@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { BrandLogo } from "@/components/site/BrandLogo";
-import { properties, resolvePropertyBySlug } from "@/lib/properties";
+import { properties, propertyRoomOptions, resolvePropertyBySlug, roomOptionBySlug } from "@/lib/properties";
 import { resolveLocationPage, safePreviewImageList } from "@/lib/pg-locations";
 import {
   Armchair,
@@ -49,7 +49,7 @@ export const Route = createFileRoute("/properties/$slug")({
           { title: `${loaderData.name} - MyRoomiee` },
           {
             name: "description",
-            content: `Fully furnished AC accommodation in ${loaderData.location}, Mumbai. Single, double and triple sharing options from Rs. ${loaderData.priceFrom.toLocaleString("en-IN")}/month.`,
+            content: `Fully furnished AC accommodation in ${loaderData.location}, Mumbai. Master Bedroom, Common Bedroom and Hall options from Rs. ${loaderData.priceFrom.toLocaleString("en-IN")}/month.`,
           },
           { property: "og:title", content: `${loaderData.name} - MyRoomiee` },
           { property: "og:description", content: `Premium PG in ${loaderData.location} from Rs. ${loaderData.priceFrom.toLocaleString("en-IN")}/mo.` },
@@ -74,12 +74,6 @@ export const Route = createFileRoute("/properties/$slug")({
     </SiteLayout>
   ),
 });
-
-const roomTypeMeta = {
-  Single: { slug: "single-ac-room", title: "Single AC Room", note: "Private room option" },
-  Double: { slug: "double-sharing-room", title: "Double Sharing", note: "Two residents sharing" },
-  Triple: { slug: "triple-sharing-room", title: "Triple Sharing", note: "Budget-friendly sharing" },
-} as const;
 
 const amenityGroups = [
   {
@@ -160,13 +154,6 @@ const policySections = [
   },
 ];
 
-const roomTypeFromSlug = (slug?: string) => {
-  if (slug?.includes("single")) return "Single";
-  if (slug?.includes("double")) return "Double";
-  if (slug?.includes("triple")) return "Triple";
-  return "Double";
-};
-
 function PropertyDetail() {
   const p = Route.useLoaderData();
   const params = Route.useParams();
@@ -184,16 +171,16 @@ export function PropertyDetailView({
   locationSlug?: string;
 }) {
   const locationData = locationSlug ? resolveLocationPage(locationSlug) : undefined;
-  const requestedSharing = roomTypeFromSlug(routeSlug ?? p.slug);
-  const roomTypes = p.sharing
-    .filter((label) => typeof p.prices[label] === "number")
-    .map((label) => ({ label, price: p.prices[label]!, ...roomTypeMeta[label] }));
-  const activeRoom = roomTypes.find((room) => room.label === requestedSharing) ?? roomTypes[0];
+  const roomTypes = propertyRoomOptions(p);
+  const activeRoom = roomOptionBySlug(p, routeSlug);
   const area = locationData?.area ?? p.location;
   const station = locationData?.station ?? p.station;
   const stationKm = locationData?.landmarks?.[0]?.distanceKm ?? p.stationKm;
   const displayRent = activeRoom?.price ?? p.priceFrom;
-  const locationSearch = locationSlug ? { location: locationSlug, property: p.slug } : { property: p.slug };
+  const locationSearch: { location: string | undefined; property: string | undefined } = {
+    location: locationSlug,
+    property: p.slug,
+  };
   const allImages = useMemo(() => Array.from(new Set([p.image, ...(p.gallery ?? [])].filter(Boolean))), [p.gallery, p.image]);
   const safeFrontImages = safePreviewImageList(allImages);
   const gallery = [...safeFrontImages, ...allImages.filter((image) => !safeFrontImages.includes(image))];
@@ -265,7 +252,7 @@ export function PropertyDetailView({
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-[color:var(--surface)] p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Occupancy</p>
-                <p className="mt-1 font-semibold">{activeRoom?.title ?? p.occupancyType}</p>
+                <p className="mt-1 font-semibold">{activeRoom?.label ?? p.occupancyType}</p>
               </div>
               <div className="rounded-2xl bg-[color:var(--surface)] p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Station</p>
@@ -273,7 +260,7 @@ export function PropertyDetailView({
               </div>
               <div className="rounded-2xl bg-[color:var(--surface)] p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Options</p>
-                <p className="mt-1 font-semibold">{p.sharing.join(", ")}</p>
+                <p className="mt-1 font-semibold">{roomTypes.map((room) => room.label).join(", ")}</p>
               </div>
               <div className="rounded-2xl bg-[color:var(--surface)] p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Support</p>
@@ -290,12 +277,12 @@ export function PropertyDetailView({
                   params={{ slug: room.slug }}
                   search={locationSearch}
                   className={`flex items-center justify-between gap-3 rounded-2xl border p-3 text-sm transition hover:bg-accent ${
-                    activeRoom?.label === room.label ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)] text-[color:var(--brand)]" : "border-border"
+                    activeRoom?.slug === room.slug ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)] text-[color:var(--brand)]" : "border-border"
                   }`}
                 >
                   <span>
                     <span className="block font-bold">{room.label}</span>
-                    <span className="text-xs text-muted-foreground">{room.note}</span>
+                    <span className="text-xs text-muted-foreground">Managed furnished room option</span>
                   </span>
                   <span className="font-bold">Rs. {room.price.toLocaleString("en-IN")}</span>
                 </Link>
@@ -326,7 +313,7 @@ export function PropertyDetailView({
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand)]">Description</p>
             <h2 className="mt-2 font-display text-3xl font-bold">About this property</h2>
             <p className="mt-4 max-w-4xl text-muted-foreground">
-              {displayName} offers managed PG accommodation in {area} for students and working professionals who want a clean, secure and fully furnished place to stay. The room options are practical, air conditioned and supported by WiFi, housekeeping and responsive local assistance.
+              {displayName} offers managed PG accommodation in {area} for students and working professionals who want a clean, secure and fully furnished place to stay. The room options include {roomTypes.map((room) => room.label).join(", ")} and are supported by WiFi, housekeeping and responsive local assistance.
             </p>
           </section>
 
@@ -374,10 +361,10 @@ export function PropertyDetailView({
                   params={{ slug: room.slug }}
                   search={locationSearch}
                   className={`rounded-2xl border p-5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift ${
-                    activeRoom?.label === room.label ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)]" : "border-border bg-card"
+                    activeRoom?.slug === room.slug ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)]" : "border-border bg-card"
                   }`}
                 >
-                  <p className="text-sm font-semibold">{room.title}</p>
+                  <p className="text-sm font-semibold">{room.label}</p>
                   <p className="mt-2 font-display text-2xl font-bold">
                     Rs. {room.price.toLocaleString("en-IN")}
                     <span className="text-sm font-medium text-muted-foreground">/mo</span>

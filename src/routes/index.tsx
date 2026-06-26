@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PropertyCard } from "@/components/site/PropertyCard";
-import { properties, mumbaiLocations } from "@/lib/properties";
+import { properties, mumbaiLocations, propertyRoomOptions } from "@/lib/properties";
 import { locationPages, mainAreaSlugs } from "@/lib/pg-locations";
+import { roomOptionNames } from "@/lib/room-labels";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -83,8 +84,8 @@ const roomGirls = realRoomImage("ashok-samrath-building-girls", 9);
 
 const heroCarouselItems: { label: string; img: string; tag?: string }[] = [
   { label: "Premium AC Rooms", img: heroRoom, tag: "Most loved" },
-  { label: "Double Sharing Rooms", img: roomTwin, tag: "Best value" },
-  { label: "Triple Sharing Rooms", img: roomTwin, tag: "Budget friendly" },
+  { label: "Common Bedroom Rooms", img: roomTwin, tag: "Best value" },
+  { label: "Hall Room Options", img: roomTwin, tag: "Budget friendly" },
   { label: "Study Areas", img: roomSingle, tag: "For students" },
   { label: "Move-in Ready Rooms", img: roomLounge, tag: "PG accommodation" },
   { label: "Fully Furnished Rooms", img: roomPremium, tag: "Shared facility" },
@@ -191,7 +192,7 @@ function HeroCarousel() {
 const trustCards: { icon: typeof CheckCircle2; title: string; sub: string; pos: string; delay: number }[] = [
   { icon: CheckCircle2, title: "Visit Scheduled", sub: "Manager confirmation", pos: "-top-4 -left-4", delay: 0 },
   { icon: Star, title: "4.9 Google Rating", sub: "1,284 verified reviews", pos: "top-24 -right-5", delay: 0.8 },
-  { icon: BedDouble, title: "Single, Double, Triple", sub: "Choose your room type", pos: "bottom-28 -left-6", delay: 1.4 },
+  { icon: BedDouble, title: roomOptionNames, sub: "Choose your room type", pos: "bottom-28 -left-6", delay: 1.4 },
   { icon: KeyRound, title: "Ready To Move In", sub: "Furnished AC rooms", pos: "-bottom-4 right-4", delay: 0.4 },
 ];
 
@@ -300,7 +301,7 @@ function PgToggleSection() {
           animate={{ opacity: 1 }}
           className="mt-6 text-center text-sm text-muted-foreground"
         >
-          Available options for {gender === "boys" ? "boys" : "girls"}: <span className="font-medium text-foreground">single, double and triple sharing AC rooms</span>
+          Available options for {gender === "boys" ? "boys" : "girls"}: <span className="font-medium text-foreground">{roomOptionNames} AC room options</span>
         </motion.p>
       </AnimatePresence>
     </section>
@@ -440,7 +441,8 @@ function PropertyRotator() {
     return () => clearInterval(t);
   }, [items.length]);
   const p = items[i];
-  const targetSlug = p.sharing.includes("Double") ? "double-sharing-room" : p.sharing.includes("Single") ? "single-ac-room" : "triple-sharing-room";
+  const roomOptions = propertyRoomOptions(p);
+  const targetRoom = roomOptions[0];
   return (
     <section className="mx-auto max-w-7xl px-5 py-20">
       <SectionHead eyebrow="Now Showing" title="Featured property of the moment" sub="A rotating showcase of newly available rooms across Mumbai." />
@@ -477,8 +479,8 @@ function PropertyRotator() {
               </div>
               <dl className="mt-6 grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <dt className="text-xs text-muted-foreground">Sharing</dt>
-                  <dd className="mt-0.5 font-semibold">{p.sharing.join(" · ")}</dd>
+                  <dt className="text-xs text-muted-foreground">Room Options</dt>
+                  <dd className="mt-0.5 font-semibold">{roomOptions.map((room) => room.label).join(" · ")}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-muted-foreground">Availability</dt>
@@ -508,7 +510,7 @@ function PropertyRotator() {
             </div>
             <Link
               to="/properties/$slug"
-              params={{ slug: targetSlug }}
+              params={{ slug: targetRoom?.slug ?? p.slug }}
               search={{ location: `pg-in-${p.locationSlug}`, property: p.slug }}
               className="inline-flex items-center gap-2 rounded-full gradient-brand px-5 py-2.5 text-sm font-semibold text-white shadow-soft hover:shadow-lift"
             >
@@ -524,8 +526,8 @@ function PropertyRotator() {
 /* -------------------- APP EXPERIENCE -------------------- */
 
 const journeySteps: { icon: typeof Home; title: string; desc: string; ui: { label: string; value: string }[] }[] = [
-  { icon: Search, title: "Share Requirement", desc: "Tell us location, budget and sharing type.", ui: [{ label: "Location", value: "Malad East" }, { label: "Budget", value: "Rs. 12,000" }] },
-  { icon: BedDouble, title: "Choose Room Type", desc: "Compare single, double and triple options.", ui: [{ label: "Room Type", value: "Double sharing" }, { label: "AC + WiFi", value: "Included" }] },
+  { icon: Search, title: "Share Requirement", desc: "Tell us location, budget and room option.", ui: [{ label: "Location", value: "Malad East" }, { label: "Budget", value: "Rs. 12,000" }] },
+  { icon: BedDouble, title: "Choose Room Type", desc: `Compare ${roomOptionNames} options.`, ui: [{ label: "Room Type", value: "Common Bedroom" }, { label: "AC + WiFi", value: "Included" }] },
   { icon: CalendarCheck, title: "Schedule Visit", desc: "Free property tour at a slot you choose.", ui: [{ label: "Visit Slot", value: "Sat, 4:30 PM" }, { label: "Manager", value: "Confirmed" }] },
   { icon: ClipboardCheck, title: "Confirm With Manager", desc: "Finalize rent, deposit and documents offline.", ui: [{ label: "Deposit", value: "As discussed" }, { label: "Documents", value: "Verified" }] },
   { icon: Truck, title: "Move In", desc: "Walk in with your bag. Your room is ready.", ui: [{ label: "Move-in", value: "Planned" }, { label: "Keys", value: "Ready" }] },
@@ -575,7 +577,7 @@ function AppExperience() {
 
 function PropertyExperience() {
   const steps = [
-    { n: "01", t: "Browse verified properties", d: "Filter by location, budget and sharing type." },
+    { n: "01", t: "Browse verified properties", d: "Filter by location, budget and room option." },
     { n: "02", t: "Schedule a free visit", d: "Pick a slot. Our manager walks you through the property." },
     { n: "03", t: "Confirm with our manager", d: "Review rent, deposit, documents and move-in date before paying." },
   ];
@@ -624,7 +626,8 @@ function LocationsGrid() {
         {mainPages.map((p) => (
           <Link
             key={p.slug}
-            to={`/${p.slug}`}
+            to="/$slug"
+            params={{ slug: p.slug }}
             className="inline-flex items-center gap-2 rounded-full border border-[color:var(--brand)]/30 bg-[color:var(--brand-soft)] px-4 py-2 text-sm font-semibold text-[color:var(--brand)] shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift"
           >
             <MapPin className="h-3.5 w-3.5" /> PG in {p.area}

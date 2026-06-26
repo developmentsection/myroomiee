@@ -1,23 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BedDouble, CalendarCheck, MapPin, Train } from "lucide-react";
 import { motion } from "framer-motion";
-import type { Property } from "@/lib/properties";
+import { propertyRoomOptions, roomOptionBySlug, type Property } from "@/lib/properties";
 import { safePreviewImageList } from "@/lib/pg-locations";
 
-const slugForSharing = (sharing: Property["sharing"][number]) => {
-  if (sharing === "Single") return "single-ac-room";
-  if (sharing === "Triple") return "triple-sharing-room";
-  return "double-sharing-room";
-};
-
-export function PropertyCard({ p, detailSlug = "double-sharing-room" }: { p: Property; detailSlug?: string }) {
+export function PropertyCard({ p, detailSlug }: { p: Property; detailSlug?: string }) {
   const previewImage = safePreviewImageList([p.image, ...(p.gallery ?? [])])[0] ?? p.image;
-  const prices = p.sharing.filter((sharing) => p.prices[sharing]).map((sharing) => ({
-    sharing,
-    price: p.prices[sharing]!,
-  }));
-  const requestedSharing = detailSlug.includes("single") ? "Single" : detailSlug.includes("triple") ? "Triple" : "Double";
-  const targetSlug = p.sharing.includes(requestedSharing) ? detailSlug : slugForSharing(p.sharing[0]);
+  const prices = propertyRoomOptions(p);
+  const targetOption = roomOptionBySlug(p, detailSlug);
 
   return (
     <motion.div
@@ -27,7 +17,7 @@ export function PropertyCard({ p, detailSlug = "double-sharing-room" }: { p: Pro
     >
       <Link
         to="/properties/$slug"
-        params={{ slug: targetSlug }}
+        params={{ slug: targetOption.slug }}
         search={{ location: `pg-in-${p.locationSlug}`, property: p.slug }}
         aria-label={`View details for ${p.name}`}
         className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-border/80 bg-card shadow-soft outline-none transition duration-300 hover:shadow-lift focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:ring-offset-2"
@@ -57,10 +47,10 @@ export function PropertyCard({ p, detailSlug = "double-sharing-room" }: { p: Pro
 
           <div className="grid gap-2 rounded-2xl bg-[color:var(--surface)] p-3 text-xs">
             <p className="font-bold text-foreground">Room pricing</p>
-            <div className="grid grid-cols-3 gap-2">
-              {prices.map(({ sharing, price }) => (
-                <div key={sharing} className="min-w-0 rounded-xl bg-background px-2 py-2 text-center">
-                  <p className="truncate text-[11px] font-semibold text-muted-foreground">{sharing}</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {prices.map(({ label, price }) => (
+                <div key={label} className="min-w-0 rounded-xl bg-background px-2 py-2 text-center">
+                  <p className="line-clamp-2 min-h-8 text-[11px] font-semibold leading-4 text-muted-foreground">{label}</p>
                   <p className="mt-0.5 text-sm font-extrabold text-foreground">Rs. {price.toLocaleString("en-IN")}</p>
                 </div>
               ))}

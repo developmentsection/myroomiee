@@ -10,7 +10,7 @@ const faqs = [
   { q: "Do you have lock-in?", a: "Minimum stay and notice period vary by property. Specific terms are shared clearly during your visit and confirmation process." },
   { q: "Is food included?", a: "No. MyRoomiee does not include food in any package. Residents can arrange it separately as per their routine, taste and budget." },
   { q: "Are visitors allowed?", a: "Visitor rules vary by property and must be followed as per the property manager's instructions. Overnight visitor stays are not automatically allowed." },
-  { q: "Do you have AC and non-AC options?", a: "Yes. You can ask for air conditioned rooms in single, double or triple sharing formats." },
+  { q: "Do you have AC and non-AC options?", a: "Yes. You can ask for air conditioned Master Bedroom, Common Bedroom or Hall options." },
   { q: "What documents are required?", a: "Usually a government ID, one photo and basic verification details are required. The exact checklist is confirmed by the manager." },
   { q: "Can I book online?", a: "No. The website is for inquiry and visit scheduling. Final room selection, rent, deposit and move-in are confirmed with the MyRoomiee property manager." },
   { q: "Do you serve all of Mumbai?", a: "We focus on key Mumbai PG locations including Malad, Goregaon, Jogeshwari and nearby areas, with more locations added as inventory is verified." },
